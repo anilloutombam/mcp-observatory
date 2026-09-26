@@ -1,4 +1,4 @@
-import {defineField, defineType} from 'sanity'
+import { defineField, defineType } from 'sanity'
 
 export const testRunType = defineType({
   name: 'testRun',
@@ -10,7 +10,7 @@ export const testRunType = defineType({
       name: 'implementation',
       title: 'Implementation',
       type: 'reference',
-      to: [{type: 'implementation'}],
+      to: [{ type: 'implementation' }],
       validation: (rule) => rule.required(),
     }),
 
@@ -25,7 +25,7 @@ export const testRunType = defineType({
       name: 'scenario',
       title: 'Scenario',
       type: 'reference',
-      to: [{type: 'scenario'}],
+      to: [{ type: 'scenario' }],
       validation: (rule) => rule.required(),
     }),
 
@@ -35,8 +35,8 @@ export const testRunType = defineType({
       type: 'string',
       options: {
         list: [
-          {title: 'stdio', value: 'stdio'},
-          {title: 'Streamable HTTP', value: 'streamable-http'},
+          { title: 'stdio', value: 'stdio' },
+          { title: 'Streamable HTTP', value: 'streamable-http' },
         ],
       },
       validation: (rule) => rule.required(),
@@ -48,9 +48,12 @@ export const testRunType = defineType({
       type: 'string',
       options: {
         list: [
-          {title: 'Passed', value: 'passed'},
-          {title: 'Failed', value: 'failed'},
-          {title: 'Needs Review', value: 'needs-review'},
+          { title: 'Passed', value: 'passed' },
+          { title: 'Failed', value: 'failed' },
+          { title: 'Needs Review', value: 'needs-review' },
+          { title: 'Unsupported', value: 'unsupported' },
+          { title: 'Not Run', value: 'not-run' },
+          { title: 'Not Applicable', value: 'not-applicable' },
         ],
       },
       validation: (rule) => rule.required(),
@@ -74,7 +77,7 @@ export const testRunType = defineType({
       name: 'observations',
       title: 'Observations',
       type: 'array',
-      of: [{type: 'string'}],
+      of: [{ type: 'string' }],
     }),
   ],
 
@@ -86,7 +89,7 @@ export const testRunType = defineType({
       status: 'status',
     },
 
-    prepare({implementation, version, scenario, status}) {
+    prepare({ implementation, version, scenario, status }) {
       return {
         title: `${implementation ?? 'Unknown'} ${version ?? ''}`,
         subtitle: `${scenario ?? 'No scenario'} · ${status ?? 'unknown'}`,

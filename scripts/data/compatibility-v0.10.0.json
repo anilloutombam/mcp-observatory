@@ -1,0 +1,93 @@
+{
+  "schemaVersion": 1,
+  "failureLabVersion": "0.10.0",
+  "testedOn": "2026-09-19",
+  "scenario": {
+    "name": "Duplicate Response",
+    "slug": "duplicate-response",
+    "category": "protocol",
+    "description": "Tests how an MCP implementation behaves when more than one response is received for the same request."
+  },
+  "runs": [
+    {
+      "implementation": "TypeScript MCP SDK",
+      "version": "1.30.0",
+      "transport": "stdio",
+      "status": "passed",
+      "duplicateBehavior": "Error callback reported a response for an unknown ID",
+      "recoveryPassed": true
+    },
+    {
+      "implementation": "TypeScript MCP SDK",
+      "version": "1.30.0",
+      "transport": "streamable-http",
+      "status": "passed",
+      "duplicateBehavior": "Error callback reported a response for an unknown ID",
+      "recoveryPassed": true
+    },
+    {
+      "implementation": "Python MCP SDK",
+      "version": "2.2.0",
+      "transport": "stdio",
+      "status": "passed",
+      "duplicateBehavior": "No call-level duplicate error surfaced",
+      "recoveryPassed": true
+    },
+    {
+      "implementation": "Python MCP SDK",
+      "version": "2.2.0",
+      "transport": "streamable-http",
+      "status": "passed",
+      "duplicateBehavior": "No call-level duplicate error surfaced",
+      "recoveryPassed": true
+    },
+    {
+      "implementation": "Go MCP SDK",
+      "version": "1.7.0",
+      "transport": "stdio",
+      "status": "passed",
+      "duplicateBehavior": "No call-level duplicate error surfaced",
+      "recoveryPassed": true
+    },
+    {
+      "implementation": "Go MCP SDK",
+      "version": "1.7.0",
+      "transport": "streamable-http",
+      "status": "passed",
+      "duplicateBehavior": "No call-level duplicate error surfaced",
+      "recoveryPassed": true
+    },
+    {
+      "implementation": "Rust MCP SDK",
+      "version": "3.4.0",
+      "transport": "stdio",
+      "status": "passed",
+      "duplicateBehavior": "No call-level duplicate error surfaced",
+      "recoveryPassed": true
+    },
+    {
+      "implementation": "Rust MCP SDK",
+      "version": "3.4.0",
+      "transport": "streamable-http",
+      "status": "passed",
+      "duplicateBehavior": "No call-level duplicate error surfaced",
+      "recoveryPassed": true
+    },
+    {
+      "implementation": "C# MCP SDK",
+      "version": "2.2.0",
+      "transport": "stdio",
+      "status": "passed",
+      "duplicateBehavior": "No call-level duplicate error surfaced",
+      "recoveryPassed": true
+    },
+    {
+      "implementation": "C# MCP SDK",
+      "version": "2.2.0",
+      "transport": "streamable-http",
+      "status": "passed",
+      "duplicateBehavior": "No call-level duplicate error surfaced",
+      "recoveryPassed": true
+    }
+  ]
+}
