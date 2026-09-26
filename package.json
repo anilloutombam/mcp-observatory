@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "backfill:findings": "tsx --env-file=.env.local scripts/backfill-finding-reporting.ts"
   },
   "dependencies": {
     "@sanity/image-url": "^2.1.1",
