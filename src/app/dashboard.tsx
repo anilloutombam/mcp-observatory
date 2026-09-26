@@ -7,40 +7,14 @@ import type {
   RunStatus,
 } from '@/sanity/lib/dashboard'
 import { ImplementationIcon } from './implementation-icon'
+import { SummaryCard } from './summary-card'
+import { AppSidebar } from './app-sidebar'
+import { StatusBadge, StatusIcon, statusLabels } from './status-badge'
+import { TransportBadge } from './transport-badge'
 
 const featureFlags = {
-  implementations: false,
-  findings: false,
-  workflows: false,
-  evidence: false,
-  settings: false,
   runNewTest: false,
-  notifications: false,
-  profileMenu: false,
 } as const
-
-const navItems = [
-  { icon: 'overview', label: 'Overview', visible: true },
-  { icon: 'runs', label: 'Test Runs', visible: true },
-  {
-    icon: 'layers',
-    label: 'Implementations',
-    visible: featureFlags.implementations,
-  },
-  { icon: 'compare', label: 'Comparisons', visible: true },
-  { icon: 'finding', label: 'Findings', visible: featureFlags.findings },
-  { icon: 'workflow', label: 'Workflows', visible: featureFlags.workflows },
-  { icon: 'evidence', label: 'Evidence', visible: featureFlags.evidence },
-  { icon: 'settings', label: 'Settings', visible: featureFlags.settings },
-] as const
-const statusLabels: Record<RunStatus, string> = {
-  passed: 'Passed',
-  failed: 'Failed',
-  'needs-review': 'Needs review',
-  unsupported: 'Unsupported',
-  'not-run': 'Not run',
-  'not-applicable': 'N/A',
-}
 
 function Icon({ name, size = 18 }: { name: string; size?: number }) {
   const paths: Record<string, ReactNode> = {
@@ -121,62 +95,6 @@ function Icon({ name, size = 18 }: { name: string; size?: number }) {
   )
 }
 
-function StatusPill({ status }: { status: RunStatus }) {
-  return (
-    <span className={`status status-${status}`}>
-      <StatusIcon status={status} />
-      {statusLabels[status]}
-    </span>
-  )
-}
-
-function StatusIcon({ status }: { status: RunStatus }) {
-  const paths: Record<RunStatus, ReactNode> = {
-    passed: <path d="m5 12 4 4L19 6" />,
-    failed: <path d="m7 7 10 10M17 7 7 17" />,
-    'needs-review': (
-      <>
-        <path d="M12 8v5" />
-        <path d="M12 17h.01" />
-        <path d="M10.3 3.7 2.8 17a2 2 0 0 0 1.7 3h15a2 2 0 0 0 1.7-3L13.7 3.7a2 2 0 0 0-3.4 0Z" />
-      </>
-    ),
-    unsupported: (
-      <>
-        <circle cx="12" cy="12" r="9" />
-        <path d="m6 18 12-12" />
-      </>
-    ),
-    'not-run': (
-      <>
-        <circle cx="12" cy="12" r="9" />
-        <path d="M12 7v5l3 2" />
-      </>
-    ),
-    'not-applicable': (
-      <>
-        <circle cx="12" cy="12" r="9" />
-        <path d="M8 12h8" />
-      </>
-    ),
-  }
-
-  return (
-    <svg
-      className="status-icon"
-      aria-hidden="true"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      {paths[status]}
-    </svg>
-  )
-}
-
 function MatrixMark({ status }: { status?: RunStatus }) {
   return status ? (
     <span
@@ -231,36 +149,7 @@ export function Dashboard({ data }: { data: DashboardData }) {
   )
   return (
     <div className="app-shell">
-      <aside className="sidebar">
-        <div className="brand">
-          <div className="brand-mark">♜</div>
-          <div>
-            <strong>MCP Failure Observatory</strong>
-            <span>Built on MCP Failure Lab + Sanity</span>
-          </div>
-        </div>
-        <nav aria-label="Main navigation">
-          {navItems
-            .filter((item) => item.visible)
-            .map(({ icon, label }) => (
-              <a
-                key={label}
-                className={icon === 'overview' ? 'active' : ''}
-                href={`#${icon}`}
-              >
-                <Icon name={icon} />
-                <span>{label}</span>
-              </a>
-            ))}
-        </nav>
-        <div className="sidebar-footer">
-          <span>
-            <i />
-            Live data
-          </span>
-          <span>◈ Powered by Sanity</span>
-        </div>
-      </aside>
+      <AppSidebar active="overview" />
       <main className="workspace" id="overview">
         <header className="topbar">
           <label className="search">
@@ -272,12 +161,6 @@ export function Dashboard({ data }: { data: DashboardData }) {
               aria-label="Search dashboard"
             />
           </label>
-          <div className="profile">
-            {featureFlags.notifications && <span className="bell">♧</span>}
-            <b>AO</b>
-            <span>Anil Loutombam</span>
-            {featureFlags.profileMenu && <span>⌄</span>}
-          </div>
         </header>
         <div className="dashboard-wrap">
           <section className="hero">
@@ -305,29 +188,29 @@ export function Dashboard({ data }: { data: DashboardData }) {
             </div>
           </section>
           <section className="stats" aria-label="Dataset summary">
-            <Stat
+            <SummaryCard
               icon="layers"
               tone="blue"
               label="Implementations"
               value={data.implementationCount}
               detail={`${data.scenarioCount} scenarios represented`}
             />
-            <Stat
+            <SummaryCard
               icon="runs"
               tone="purple"
               label="Test Runs"
               value={data.testRunCount}
               detail="Across all scenarios"
             />
-            <Stat
+            <SummaryCard
               icon="finding"
               tone="red"
               label="Findings"
               value={data.findingCount}
               detail="Captured observations"
             />
-            <Stat
-              icon="overview"
+            <SummaryCard
+              icon="verified"
               tone="green"
               label="Verified"
               value={data.verifiedFindingCount}
@@ -437,12 +320,8 @@ export function Dashboard({ data }: { data: DashboardData }) {
                         <span>{run.scenario?.name ?? 'Unknown scenario'}</span>
                       </div>
                       <div className="run-meta">
-                        <span className="transport">
-                          {run.transport === 'streamable-http'
-                            ? 'HTTP'
-                            : 'stdio'}
-                        </span>
-                        <StatusPill status={run.status} />
+                        <TransportBadge transport={run.transport} />
+                        <StatusBadge status={run.status} />
                         <time dateTime={run.startedAt ?? run._createdAt}>
                           {formatDate(run)}
                         </time>
@@ -467,32 +346,6 @@ export function Dashboard({ data }: { data: DashboardData }) {
   )
 }
 
-function Stat({
-  icon,
-  tone,
-  label,
-  value,
-  detail,
-}: {
-  icon: string
-  tone: string
-  label: string
-  value: number
-  detail: string
-}) {
-  return (
-    <article className="stat-card">
-      <span className={`stat-icon ${tone}`}>
-        <Icon name={icon} size={23} />
-      </span>
-      <span>
-        <small>{label}</small>
-        <strong>{value.toLocaleString()}</strong>
-        <em>{detail}</em>
-      </span>
-    </article>
-  )
-}
 function PanelHeading({
   title,
   subtitle,
