@@ -1,4 +1,4 @@
-import {defineField, defineType} from 'sanity'
+import { defineField, defineType } from 'sanity'
 
 export const findingType = defineType({
   name: 'finding',
@@ -10,7 +10,7 @@ export const findingType = defineType({
       name: 'testRun',
       title: 'Test Run',
       type: 'reference',
-      to: [{type: 'testRun'}],
+      to: [{ type: 'testRun' }],
       validation: (rule) => rule.required(),
     }),
 
@@ -28,12 +28,12 @@ export const findingType = defineType({
       type: 'string',
       options: {
         list: [
-          {title: 'Compatibility', value: 'compatibility'},
-          {title: 'Recovery', value: 'recovery'},
-          {title: 'Protocol Behavior', value: 'protocol-behavior'},
-          {title: 'Transport', value: 'transport'},
-          {title: 'Reliability', value: 'reliability'},
-          {title: 'Other', value: 'other'},
+          { title: 'Compatibility', value: 'compatibility' },
+          { title: 'Recovery', value: 'recovery' },
+          { title: 'Protocol Behavior', value: 'protocol-behavior' },
+          { title: 'Transport', value: 'transport' },
+          { title: 'Reliability', value: 'reliability' },
+          { title: 'Other', value: 'other' },
         ],
       },
       validation: (rule) => rule.required(),
@@ -53,9 +53,9 @@ export const findingType = defineType({
       type: 'string',
       options: {
         list: [
-          {title: 'Needs Review', value: 'needs-review'},
-          {title: 'Verified', value: 'verified'},
-          {title: 'Rejected', value: 'rejected'},
+          { title: 'Needs Review', value: 'needs-review' },
+          { title: 'Verified', value: 'verified' },
+          { title: 'Rejected', value: 'rejected' },
         ],
       },
       initialValue: 'needs-review',
@@ -69,7 +69,7 @@ export const findingType = defineType({
       of: [
         {
           type: 'reference',
-          to: [{type: 'evidence'}],
+          to: [{ type: 'evidence' }],
         },
       ],
     }),
@@ -80,9 +80,9 @@ export const findingType = defineType({
       type: 'string',
       options: {
         list: [
-          {title: 'Agent', value: 'agent'},
-          {title: 'Human', value: 'human'},
-          {title: 'Importer', value: 'importer'},
+          { title: 'Agent', value: 'agent' },
+          { title: 'Human', value: 'human' },
+          { title: 'Importer', value: 'importer' },
         ],
       },
       validation: (rule) => rule.required(),
@@ -96,7 +96,7 @@ export const findingType = defineType({
       implementation: 'testRun.implementation.name',
     },
 
-    prepare({statement, status, implementation}) {
+    prepare({ statement, status, implementation }) {
       return {
         title: statement ?? 'Untitled finding',
         subtitle: `${implementation ?? 'Unknown implementation'} · ${status ?? 'unknown'}`,

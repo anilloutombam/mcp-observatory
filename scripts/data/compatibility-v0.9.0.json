@@ -1,0 +1,227 @@
+{
+  "schemaVersion": 1,
+  "failureLabVersion": "0.9.0",
+  "testedOn": "2026-09-17",
+  "implementations": [
+    { "name": "TypeScript MCP SDK", "version": "1.30.0" },
+    { "name": "Python MCP SDK", "version": "2.2.0" },
+    { "name": "Go MCP SDK", "version": "1.7.0" },
+    { "name": "Rust MCP SDK", "version": "3.4.0" },
+    { "name": "C# MCP SDK", "version": "2.2.0" },
+    { "name": "MCP Inspector CLI", "version": "2.7.0" }
+  ],
+  "scenarios": [
+    {
+      "name": "Initialize",
+      "slug": "initialize",
+      "category": "baseline",
+      "results": {
+        "TypeScript MCP SDK": ["passed", "passed"],
+        "Python MCP SDK": ["passed", "passed"],
+        "Go MCP SDK": ["passed", "passed"],
+        "Rust MCP SDK": ["passed", "passed"],
+        "C# MCP SDK": ["passed", "passed"],
+        "MCP Inspector CLI": ["passed", "passed"]
+      }
+    },
+    {
+      "name": "Protocol Ping",
+      "slug": "protocol-ping",
+      "category": "protocol",
+      "results": {
+        "TypeScript MCP SDK": ["passed", "passed"],
+        "Python MCP SDK": ["passed", "passed"],
+        "Go MCP SDK": [
+          "passed",
+          {
+            "status": "unsupported",
+            "observation": "Unsupported on the modern protocol."
+          }
+        ],
+        "Rust MCP SDK": ["unsupported", "unsupported"],
+        "C# MCP SDK": ["unsupported", "unsupported"],
+        "MCP Inspector CLI": [
+          {
+            "status": "unsupported",
+            "observation": "Not exposed by the one-shot CLI."
+          },
+          {
+            "status": "unsupported",
+            "observation": "Not exposed by the one-shot CLI."
+          }
+        ]
+      }
+    },
+    {
+      "name": "List All Five Tools",
+      "slug": "list-all-five-tools",
+      "category": "baseline",
+      "results": {
+        "TypeScript MCP SDK": ["passed", "passed"],
+        "Python MCP SDK": ["passed", "passed"],
+        "Go MCP SDK": ["passed", "passed"],
+        "Rust MCP SDK": ["passed", "passed"],
+        "C# MCP SDK": ["passed", "passed"],
+        "MCP Inspector CLI": ["passed", "passed"]
+      }
+    },
+    {
+      "name": "Ping Tool",
+      "slug": "ping-tool",
+      "category": "baseline",
+      "results": {
+        "TypeScript MCP SDK": ["passed", "passed"],
+        "Python MCP SDK": ["passed", "passed"],
+        "Go MCP SDK": ["passed", "passed"],
+        "Rust MCP SDK": ["passed", "passed"],
+        "C# MCP SDK": ["passed", "passed"],
+        "MCP Inspector CLI": ["passed", "passed"]
+      }
+    },
+    {
+      "name": "Bounded Delay",
+      "slug": "bounded-delay",
+      "category": "timing",
+      "results": {
+        "TypeScript MCP SDK": ["passed", "passed"],
+        "Python MCP SDK": ["passed", "passed"],
+        "Go MCP SDK": ["passed", "passed"],
+        "Rust MCP SDK": ["passed", "passed"],
+        "C# MCP SDK": ["passed", "passed"],
+        "MCP Inspector CLI": ["passed", "passed"]
+      }
+    },
+    {
+      "name": "Delay Timeout and Recovery",
+      "slug": "delay-timeout-and-recovery",
+      "category": "timing",
+      "results": {
+        "TypeScript MCP SDK": ["passed", "passed"],
+        "Python MCP SDK": ["passed", "passed"],
+        "Go MCP SDK": ["passed", "passed"],
+        "Rust MCP SDK": ["passed", "passed"],
+        "C# MCP SDK": ["passed", "passed"],
+        "MCP Inspector CLI": [
+          {
+            "status": "unsupported",
+            "observation": "No per-call timeout option."
+          },
+          {
+            "status": "unsupported",
+            "observation": "No per-call timeout option."
+          }
+        ]
+      }
+    },
+    {
+      "name": "Hang Timeout/Cancellation and Recovery",
+      "slug": "hang-timeout-cancellation-and-recovery",
+      "category": "timing",
+      "results": {
+        "TypeScript MCP SDK": ["passed", "passed"],
+        "Python MCP SDK": ["passed", "passed"],
+        "Go MCP SDK": ["passed", "passed"],
+        "Rust MCP SDK": ["passed", "passed"],
+        "C# MCP SDK": ["passed", "passed"],
+        "MCP Inspector CLI": [
+          {
+            "status": "unsupported",
+            "observation": "No per-call timeout option."
+          },
+          {
+            "status": "unsupported",
+            "observation": "No per-call timeout option."
+          }
+        ]
+      }
+    },
+    {
+      "name": "Missing/Invalid JSON-RPC Detection and Recovery",
+      "slug": "missing-invalid-jsonrpc-detection-recovery",
+      "category": "protocol",
+      "results": {
+        "TypeScript MCP SDK": ["passed", "passed"],
+        "Python MCP SDK": ["passed", "passed"],
+        "Go MCP SDK": ["failed", "failed"],
+        "Rust MCP SDK": ["passed", "passed"],
+        "C# MCP SDK": ["passed", "passed"],
+        "MCP Inspector CLI": [
+          {
+            "status": "passed",
+            "observation": "Fault detected; the one-shot call required an external bound."
+          },
+          {
+            "status": "passed",
+            "observation": "Fault detected; the one-shot call required an external bound."
+          }
+        ]
+      }
+    },
+    {
+      "name": "Reject Result-With-Error and Recover",
+      "slug": "reject-result-with-error-and-recover",
+      "category": "protocol",
+      "results": {
+        "TypeScript MCP SDK": ["passed", "passed"],
+        "Python MCP SDK": ["passed", "passed"],
+        "Go MCP SDK": ["passed", "passed"],
+        "Rust MCP SDK": ["failed", "failed"],
+        "C# MCP SDK": ["passed", "passed"],
+        "MCP Inspector CLI": [
+          {
+            "status": "not-run",
+            "observation": "Not repeated in the one-shot CLI."
+          },
+          {
+            "status": "not-run",
+            "observation": "Not repeated in the one-shot CLI."
+          }
+        ]
+      }
+    },
+    {
+      "name": "Injected Disconnect Observed",
+      "slug": "injected-disconnect-observed",
+      "category": "transport",
+      "results": {
+        "TypeScript MCP SDK": ["passed", "passed"],
+        "Python MCP SDK": ["passed", "passed"],
+        "Go MCP SDK": ["passed", "passed"],
+        "Rust MCP SDK": ["passed", "passed"],
+        "C# MCP SDK": ["passed", "passed"],
+        "MCP Inspector CLI": [
+          {
+            "status": "not-run",
+            "observation": "Not automated in the one-shot CLI."
+          },
+          {
+            "status": "not-run",
+            "observation": "Not automated in the one-shot CLI."
+          }
+        ]
+      }
+    },
+    {
+      "name": "Same-Client Recovery After Disconnect",
+      "slug": "same-client-recovery-after-disconnect",
+      "category": "lifecycle",
+      "results": {
+        "TypeScript MCP SDK": ["not-applicable", "passed"],
+        "Python MCP SDK": ["not-applicable", "failed"],
+        "Go MCP SDK": ["not-applicable", "passed"],
+        "Rust MCP SDK": ["not-applicable", "passed"],
+        "C# MCP SDK": ["not-applicable", "passed"],
+        "MCP Inspector CLI": [
+          {
+            "status": "unsupported",
+            "observation": "Unsupported by the one-shot CLI."
+          },
+          {
+            "status": "unsupported",
+            "observation": "Unsupported by the one-shot CLI."
+          }
+        ]
+      }
+    }
+  ]
+}

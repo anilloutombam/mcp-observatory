@@ -1,4 +1,4 @@
-import {defineField, defineType} from 'sanity'
+import { defineField, defineType } from 'sanity'
 
 export const scenarioType = defineType({
   name: 'scenario',
@@ -30,12 +30,12 @@ export const scenarioType = defineType({
       type: 'string',
       options: {
         list: [
-          {title: 'Baseline', value: 'baseline'},
-          {title: 'Timing', value: 'timing'},
-          {title: 'Transport', value: 'transport'},
-          {title: 'Protocol', value: 'protocol'},
-          {title: 'Lifecycle', value: 'lifecycle'},
-          {title: 'Other', value: 'other'},
+          { title: 'Baseline', value: 'baseline' },
+          { title: 'Timing', value: 'timing' },
+          { title: 'Transport', value: 'transport' },
+          { title: 'Protocol', value: 'protocol' },
+          { title: 'Lifecycle', value: 'lifecycle' },
+          { title: 'Other', value: 'other' },
         ],
       },
       validation: (rule) => rule.required(),

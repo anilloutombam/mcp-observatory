@@ -1,4 +1,4 @@
-import {defineField, defineType} from 'sanity'
+import { defineField, defineType } from 'sanity'
 
 export const implementationType = defineType({
   name: 'implementation',
@@ -30,10 +30,10 @@ export const implementationType = defineType({
       type: 'string',
       options: {
         list: [
-          {title: 'Client', value: 'client'},
-          {title: 'Server', value: 'server'},
-          {title: 'Proxy', value: 'proxy'},
-          {title: 'Other', value: 'other'},
+          { title: 'Client', value: 'client' },
+          { title: 'Server', value: 'server' },
+          { title: 'Proxy', value: 'proxy' },
+          { title: 'Other', value: 'other' },
         ],
         layout: 'radio',
       },

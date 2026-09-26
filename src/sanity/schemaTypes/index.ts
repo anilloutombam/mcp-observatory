@@ -6,5 +6,11 @@ import { evidenceType } from './evidence'
 import { findingType } from './findings'
 
 export const schema: { types: SchemaTypeDefinition[] } = {
-  types: [implementationType, scenarioType, testRunType, evidenceType, findingType],
+  types: [
+    implementationType,
+    scenarioType,
+    testRunType,
+    evidenceType,
+    findingType,
+  ],
 }

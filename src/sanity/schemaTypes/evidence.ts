@@ -1,4 +1,4 @@
-import {defineField, defineType} from 'sanity'
+import { defineField, defineType } from 'sanity'
 
 export const evidenceType = defineType({
   name: 'evidence',
@@ -10,7 +10,7 @@ export const evidenceType = defineType({
       name: 'testRun',
       title: 'Test Run',
       type: 'reference',
-      to: [{type: 'testRun'}],
+      to: [{ type: 'testRun' }],
       validation: (rule) => rule.required(),
     }),
 
@@ -20,13 +20,13 @@ export const evidenceType = defineType({
       type: 'string',
       options: {
         list: [
-          {title: 'Log', value: 'log'},
-          {title: 'Request', value: 'request'},
-          {title: 'Response', value: 'response'},
-          {title: 'Error', value: 'error'},
-          {title: 'Recovery', value: 'recovery'},
-          {title: 'Observation', value: 'observation'},
-          {title: 'Other', value: 'other'},
+          { title: 'Log', value: 'log' },
+          { title: 'Request', value: 'request' },
+          { title: 'Response', value: 'response' },
+          { title: 'Error', value: 'error' },
+          { title: 'Recovery', value: 'recovery' },
+          { title: 'Observation', value: 'observation' },
+          { title: 'Other', value: 'other' },
         ],
       },
       validation: (rule) => rule.required(),
@@ -66,7 +66,7 @@ export const evidenceType = defineType({
       implementation: 'testRun.implementation.name',
     },
 
-    prepare({title, type, implementation}) {
+    prepare({ title, type, implementation }) {
       return {
         title: title ?? 'Untitled evidence',
         subtitle: `${type ?? 'unknown'} · ${implementation ?? 'Unknown implementation'}`,
