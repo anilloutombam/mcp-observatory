@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { useMemo, useState, type ReactNode } from 'react'
 import type {
   DashboardData,
@@ -241,7 +242,10 @@ export function Dashboard({ data }: { data: DashboardData }) {
                       {implementations.map((item) => (
                         <tr key={item._id}>
                           <td>
-                            <div className="implementation">
+                            <Link
+                              className="implementation implementation-link"
+                              href={`/implementations/${encodeURIComponent(item.slug)}`}
+                            >
                               <ImplementationIcon
                                 name={item.name}
                                 slug={item.slug}
@@ -250,7 +254,7 @@ export function Dashboard({ data }: { data: DashboardData }) {
                                 <strong>{item.name}</strong>
                                 <small>v{item.runs[0]?.version ?? '—'}</small>
                               </span>
-                            </div>
+                            </Link>
                           </td>
                           {scenarios.map((scenario) => {
                             const matches = item.runs.filter(
@@ -314,9 +318,12 @@ export function Dashboard({ data }: { data: DashboardData }) {
                         slug={run.implementation?.slug}
                       />
                       <div className="run-primary">
-                        <strong>
+                        <Link
+                          className="implementation-name-link"
+                          href={`/implementations/${encodeURIComponent(run.implementation?.slug ?? '')}`}
+                        >
                           {run.implementation?.name ?? 'Unknown implementation'}
-                        </strong>
+                        </Link>
                         <span>{run.scenario?.name ?? 'Unknown scenario'}</span>
                       </div>
                       <div className="run-meta">

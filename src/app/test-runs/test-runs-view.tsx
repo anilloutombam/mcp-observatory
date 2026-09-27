@@ -1,24 +1,15 @@
 'use client'
 
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
 import { useMemo, useState, type ChangeEvent } from 'react'
 
-import type { TestRunListItem, TestRunsData } from '@/sanity/lib/test-runs'
+import type { TestRunsData } from '@/sanity/lib/test-runs'
 import { AppSidebar } from '../app-sidebar'
-import { ImplementationIcon } from '../implementation-icon'
-import { StatusBadge, statusLabels } from '../status-badge'
+import { statusLabels } from '../status-badge'
 import { SummaryCard } from '../summary-card'
-import { TransportBadge } from '../transport-badge'
+import { TestRunTable } from '../test-run-table'
 
 const PAGE_SIZE = 15
-function displayDate(run: TestRunListItem) {
-  return new Intl.DateTimeFormat('en', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  }).format(new Date(run.startedAt ?? run.testedOn ?? run._createdAt))
-}
 
 function SearchIcon() {
   return (
@@ -39,7 +30,6 @@ function SearchIcon() {
 }
 
 export function TestRunsView({ data }: { data: TestRunsData }) {
-  const router = useRouter()
   const [search, setSearch] = useState('')
   const [implementation, setImplementation] = useState('')
   const [scenario, setScenario] = useState('')
@@ -211,82 +201,7 @@ export function TestRunsView({ data }: { data: TestRunsData }) {
             </div>
             {rows.length ? (
               <>
-                <div className="runs-table-wrap">
-                  <table className="runs-table">
-                    <thead>
-                      <tr>
-                        <th>Implementation</th>
-                        <th>Scenario</th>
-                        <th>Transport</th>
-                        <th>Status</th>
-                        <th>Recorded</th>
-                        <th>Context</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {rows.map((run) => (
-                        <tr
-                          className="runs-table-row-link"
-                          key={run._id}
-                          role="link"
-                          tabIndex={0}
-                          aria-label={`View ${run.implementation?.name ?? 'unknown implementation'} test run for ${run.scenario?.name ?? 'unknown scenario'}`}
-                          onClick={() =>
-                            router.push(
-                              `/test-runs/${encodeURIComponent(run._id)}`,
-                            )
-                          }
-                          onKeyDown={(event) => {
-                            if (event.key === 'Enter' || event.key === ' ') {
-                              event.preventDefault()
-                              router.push(
-                                `/test-runs/${encodeURIComponent(run._id)}`,
-                              )
-                            }
-                          }}
-                        >
-                          <td>
-                            <div className="run-implementation">
-                              <ImplementationIcon
-                                name={run.implementation?.name ?? 'Unknown'}
-                                slug={run.implementation?.slug}
-                              />
-                              <span>
-                                <strong className="run-detail-link">
-                                  {run.implementation?.name ?? 'Unknown'}
-                                </strong>
-                                <small>v{run.version}</small>
-                              </span>
-                            </div>
-                          </td>
-                          <td>
-                            <strong>{run.scenario?.name ?? 'Unknown'}</strong>
-                            <small>
-                              {run.scenario?.category ?? 'uncategorized'}
-                            </small>
-                          </td>
-                          <td>
-                            <TransportBadge transport={run.transport} />
-                          </td>
-                          <td>
-                            <StatusBadge status={run.status} />
-                          </td>
-                          <td>
-                            <time>{displayDate(run)}</time>
-                          </td>
-                          <td>
-                            <span className="context-count">
-                              {run.evidenceCount} evidence
-                            </span>
-                            <span className="context-count">
-                              {run.findingCount} findings
-                            </span>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                <TestRunTable runs={rows} />
                 <div className="pagination">
                   <span>
                     Page {current} of {pages}

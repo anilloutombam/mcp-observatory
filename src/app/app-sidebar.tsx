@@ -53,7 +53,9 @@ export function AppSidebar({ active }: { active: Page }) {
   return (
     <aside className="sidebar runs-page-sidebar">
       <Link className="brand" href="/">
-        <div className="brand-mark"><McpLogo /></div>
+        <div className="brand-mark">
+          <McpLogo />
+        </div>
         <div>
           <strong>MCP Failure Observatory</strong>
           <span>Built on MCP Failure Lab + Sanity</span>

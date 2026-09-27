@@ -14,20 +14,20 @@ export function ImplementationIcon({ name, slug }: ImplementationIconProps) {
   const kind = key.includes('github')
     ? 'github'
     : key.includes('typescript')
-    ? 'typescript'
-    : key.includes('python')
-      ? 'python'
-      : key.includes('rust')
-        ? 'rust'
-        : key.includes('c-mcp') || key.includes('csharp')
-          ? 'csharp'
-          : key.includes('go-mcp')
-            ? 'go'
-            : key.includes('inspector') || key.includes('everything-server')
-              ? 'mcp'
-              : key.includes('proxy') || key.includes('supergateway')
-                ? 'proxy'
-                : key.includes('server') || key.includes('everything')
+      ? 'typescript'
+      : key.includes('python')
+        ? 'python'
+        : key.includes('rust')
+          ? 'rust'
+          : key.includes('c-mcp') || key.includes('csharp')
+            ? 'csharp'
+            : key.includes('go-mcp')
+              ? 'go'
+              : key.includes('inspector') || key.includes('everything-server')
+                ? 'mcp'
+                : key.includes('proxy') || key.includes('supergateway')
+                  ? 'proxy'
+                  : key.includes('server') || key.includes('everything')
                     ? 'server'
                     : 'fallback'
 
@@ -36,7 +36,14 @@ export function ImplementationIcon({ name, slug }: ImplementationIconProps) {
       <svg viewBox="0 0 32 32" fill="none">
         {kind === 'typescript' && (
           <>
-            <rect x="3" y="3" width="26" height="26" rx="4" fill="currentColor" />
+            <rect
+              x="3"
+              y="3"
+              width="26"
+              height="26"
+              rx="4"
+              fill="currentColor"
+            />
             <path
               d="M7.5 11h10M12.5 11v11.5M18.5 20.5c1.6 1.5 5.8 1.8 5.8-.8 0-3.1-5.5-1.5-5.5-5 0-2.9 4.2-3.5 6-1.7"
               stroke="white"
@@ -132,24 +139,74 @@ export function ImplementationIcon({ name, slug }: ImplementationIconProps) {
         )}
         {kind === 'proxy' && (
           <>
-            <path d="M5 10h15M16 6l4 4-4 4M27 22H12M16 18l-4 4 4 4" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
-            <circle cx="7" cy="22" r="2.5" stroke="currentColor" strokeWidth="2" />
-            <circle cx="25" cy="10" r="2.5" stroke="currentColor" strokeWidth="2" />
+            <path
+              d="M5 10h15M16 6l4 4-4 4M27 22H12M16 18l-4 4 4 4"
+              stroke="currentColor"
+              strokeWidth="2.2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+            <circle
+              cx="7"
+              cy="22"
+              r="2.5"
+              stroke="currentColor"
+              strokeWidth="2"
+            />
+            <circle
+              cx="25"
+              cy="10"
+              r="2.5"
+              stroke="currentColor"
+              strokeWidth="2"
+            />
           </>
         )}
         {kind === 'server' && (
           <>
-            <rect x="5" y="5" width="22" height="9" rx="2.5" stroke="currentColor" strokeWidth="2" />
-            <rect x="5" y="18" width="22" height="9" rx="2.5" stroke="currentColor" strokeWidth="2" />
+            <rect
+              x="5"
+              y="5"
+              width="22"
+              height="9"
+              rx="2.5"
+              stroke="currentColor"
+              strokeWidth="2"
+            />
+            <rect
+              x="5"
+              y="18"
+              width="22"
+              height="9"
+              rx="2.5"
+              stroke="currentColor"
+              strokeWidth="2"
+            />
             <circle cx="10" cy="9.5" r="1.3" fill="currentColor" />
             <circle cx="10" cy="22.5" r="1.3" fill="currentColor" />
-            <path d="M15 9.5h7M15 22.5h7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+            <path
+              d="M15 9.5h7M15 22.5h7"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+            />
           </>
         )}
         {kind === 'fallback' && (
           <>
-            <path d="m13 7-8 9 8 9M19 7l8 9-8 9" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round" />
-            <path d="m18 5-4 22" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+            <path
+              d="m13 7-8 9 8 9M19 7l8 9-8 9"
+              stroke="currentColor"
+              strokeWidth="2.3"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+            <path
+              d="m18 5-4 22"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+            />
           </>
         )}
       </svg>

@@ -1,3 +1,5 @@
+import Link from 'next/link'
+
 import type {
   TestRunDetail,
   TestRunFinding,
@@ -92,7 +94,14 @@ export function TestRunDetailView({ run }: { run: TestRunDetail }) {
   return (
     <div className="runs-content test-run-detail">
       <section className="detail-summary" aria-label="Test run summary">
-        <div className="detail-implementation">
+        <Link
+          className="detail-implementation"
+          href={
+            run.implementation?.slug
+              ? `/implementations/${encodeURIComponent(run.implementation.slug)}`
+              : '/'
+          }
+        >
           <ImplementationIcon
             name={run.implementation?.name ?? 'Unknown'}
             slug={run.implementation?.slug}
@@ -102,7 +111,7 @@ export function TestRunDetailView({ run }: { run: TestRunDetail }) {
             <strong>{run.implementation?.name ?? 'Unknown'}</strong>
             <em>v{run.version}</em>
           </span>
-        </div>
+        </Link>
         <div className="detail-summary-item">
           <small>Status</small>
           <StatusBadge status={run.status} />

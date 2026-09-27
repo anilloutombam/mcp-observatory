@@ -76,7 +76,10 @@ function FindingCard({ finding }: { finding: FindingListItem }) {
         )}
         <div className="finding-context">
           {implementation && (
-            <span className="finding-implementation">
+            <Link
+              className="finding-implementation"
+              href={`/implementations/${encodeURIComponent(implementation.slug)}`}
+            >
               <ImplementationIcon
                 name={implementation.name}
                 slug={implementation.slug}
@@ -85,7 +88,7 @@ function FindingCard({ finding }: { finding: FindingListItem }) {
                 <strong>{implementation.name}</strong>
                 <small>v{finding.testRun?.version}</small>
               </span>
-            </span>
+            </Link>
           )}
           {finding.testRun?.scenario && (
             <span>
