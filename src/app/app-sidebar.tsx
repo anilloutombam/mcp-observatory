@@ -1,11 +1,12 @@
 import Link from 'next/link'
 
-type Page = 'overview' | 'runs'
-type NavIconName = 'overview' | 'runs' | 'compare'
+type Page = 'overview' | 'runs' | 'findings'
+type NavIconName = 'overview' | 'runs' | 'findings' | 'compare'
 
 const items: Array<{ icon: NavIconName; label: string; href: string }> = [
   { icon: 'overview', label: 'Overview', href: '/' },
   { icon: 'runs', label: 'Test Runs', href: '/test-runs' },
+  { icon: 'findings', label: 'Findings', href: '/findings' },
   { icon: 'compare', label: 'Comparisons', href: '/#compare' },
 ]
 
@@ -31,6 +32,11 @@ function NavIcon({ name }: { name: NavIconName }) {
         <>
           <path d="M20 12a8 8 0 1 1-2.34-5.66" />
           <path d="M20 4v6h-6M9 12l2 2 4-4" />
+        </>
+      ) : name === 'findings' ? (
+        <>
+          <path d="M9 18h6M10 22h4" />
+          <path d="M8.2 14.7A7 7 0 1 1 15.8 14.7c-.9.7-1.3 1.4-1.3 2.3h-5c0-.9-.4-1.6-1.3-2.3Z" />
         </>
       ) : (
         <>

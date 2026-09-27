@@ -2,17 +2,10 @@ import type {
   TestRunDetail,
   TestRunFinding,
 } from '@/sanity/lib/test-run-detail'
+import { FindingReportingBadge } from '../../finding-reporting-badge'
 import { ImplementationIcon } from '../../implementation-icon'
 import { StatusBadge } from '../../status-badge'
 import { TransportBadge } from '../../transport-badge'
-
-const reportingLabels: Record<string, string> = {
-  reported: 'Reported by us',
-  'already-reported': 'Evidence added to existing issue',
-  'not-reported': 'Not reported',
-  resolved: 'Resolved upstream',
-  'not-actionable': 'Not actionable',
-}
 
 function formatDate(value?: string) {
   if (!value) return null
@@ -38,10 +31,6 @@ function ExternalLink({ href, children }: { href: string; children: string }) {
 }
 
 function FindingCard({ finding }: { finding: TestRunFinding }) {
-  const reportingLabel = finding.reportingStatus
-    ? (reportingLabels[finding.reportingStatus] ?? finding.reportingStatus)
-    : null
-
   return (
     <article className="detail-card finding-card">
       <div className="detail-card-heading">
@@ -49,13 +38,7 @@ function FindingCard({ finding }: { finding: TestRunFinding }) {
           <span className="detail-kicker">{finding.category}</span>
           <h3>{finding.statement}</h3>
         </div>
-        {reportingLabel && (
-          <span
-            className={`reporting-state reporting-${finding.reportingStatus}`}
-          >
-            {reportingLabel}
-          </span>
-        )}
+        <FindingReportingBadge status={finding.reportingStatus} />
       </div>
       <dl className="inline-metadata">
         <div>

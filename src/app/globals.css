@@ -1614,3 +1614,195 @@ input {
     gap: 10px;
   }
 }
+
+/* Findings */
+.findings-toolbar {
+  display: grid;
+  grid-template-columns: minmax(270px, 1.6fr) repeat(5, minmax(130px, 1fr));
+  gap: 8px;
+}
+.findings-toolbar select,
+.findings-toolbar .runs-search {
+  height: 39px;
+  border: 1px solid #d9e0e9;
+  border-radius: 6px;
+  background-color: #f8fafc;
+  color: #40506a;
+  font-size: 11px;
+}
+.findings-toolbar select {
+  min-width: 0;
+  padding: 0 34px 0 11px;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%2352637a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m7 10 5 5 5-5'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 11px center;
+  cursor: pointer;
+}
+.findings-toolbar select:hover,
+.findings-toolbar .runs-search:hover {
+  border-color: #b9c5d5;
+  background-color: white;
+}
+.findings-toolbar select:focus,
+.findings-toolbar .runs-search:focus-within {
+  outline: none;
+  border-color: #7ca5ff;
+  background-color: white;
+  box-shadow: 0 0 0 3px #dce8ff;
+}
+.finding-list {
+  display: grid;
+  gap: 10px;
+}
+.finding-list-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 145px;
+  gap: 20px;
+  padding: 18px;
+  border: 1px solid #e1e6ed;
+  border-radius: 8px;
+  background: white;
+  transition:
+    border-color 140ms ease,
+    box-shadow 140ms ease;
+}
+.finding-list-card:hover {
+  border-color: #c8d5e6;
+  box-shadow: 0 5px 18px rgba(29, 42, 64, 0.06);
+}
+.finding-list-heading,
+.finding-badges {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+.finding-list-heading {
+  justify-content: space-between;
+}
+.finding-category {
+  color: #738198;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.review-state {
+  padding: 6px 9px;
+  border-radius: 999px;
+  background: #f0f3f7;
+  color: #52617a;
+  font-size: 9px;
+  font-weight: 800;
+}
+.review-verified {
+  background: #dcf7ec;
+  color: #087a57;
+}
+.review-needs-review {
+  background: #fff0dc;
+  color: #97531b;
+}
+.review-rejected {
+  background: #ffe5e8;
+  color: #aa3341;
+}
+.finding-list-card h2 {
+  margin: 13px 0 0;
+  color: #1d2a40;
+  font-size: 15px;
+  line-height: 1.48;
+}
+.finding-resolution {
+  margin: 8px 0 0;
+  color: #65758d;
+  font-size: 11px;
+  line-height: 1.55;
+}
+.finding-context {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 13px 25px;
+  margin-top: 16px;
+}
+.finding-context > span {
+  display: grid;
+  gap: 3px;
+}
+.finding-context small {
+  color: #8793a5;
+  font-size: 9px;
+}
+.finding-context strong {
+  color: #40506a;
+  font-size: 10px;
+}
+.finding-context .finding-implementation {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.finding-implementation > span {
+  display: grid;
+  gap: 3px;
+}
+.finding-list-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: center;
+  gap: 7px;
+  border-left: 1px solid #e7ebf1;
+  padding-left: 18px;
+}
+.finding-list-actions a {
+  padding: 7px 9px;
+  border-radius: 6px;
+  color: #2868f4;
+  background: #f3f7ff;
+  font-size: 10px;
+  font-weight: 700;
+  text-align: center;
+  text-decoration: none;
+}
+.finding-list-actions a:hover {
+  background: #e7efff;
+}
+@media (max-width: 1400px) {
+  .findings-toolbar {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+@media (max-width: 800px) {
+  .findings-toolbar {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .findings-toolbar .runs-search {
+    grid-column: 1 / -1;
+  }
+  .finding-list-card {
+    grid-template-columns: 1fr;
+  }
+  .finding-list-actions {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    border-top: 1px solid #e7ebf1;
+    border-left: 0;
+    padding-top: 13px;
+    padding-left: 0;
+  }
+}
+@media (max-width: 520px) {
+  .findings-toolbar {
+    grid-template-columns: 1fr;
+  }
+  .findings-toolbar .runs-search {
+    grid-column: auto;
+  }
+  .finding-list-card {
+    padding: 14px;
+  }
+}
