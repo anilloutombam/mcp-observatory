@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { useMemo, useState, type ChangeEvent } from 'react'
 
 import type { TestRunListItem, TestRunsData } from '@/sanity/lib/test-runs'
@@ -16,7 +17,7 @@ function displayDate(run: TestRunListItem) {
     month: 'short',
     day: 'numeric',
     year: 'numeric',
-  }).format(new Date(run.startedAt ?? run._createdAt))
+  }).format(new Date(run.startedAt ?? run.testedOn ?? run._createdAt))
 }
 
 function SearchIcon() {
@@ -38,6 +39,7 @@ function SearchIcon() {
 }
 
 export function TestRunsView({ data }: { data: TestRunsData }) {
+  const router = useRouter()
   const [search, setSearch] = useState('')
   const [implementation, setImplementation] = useState('')
   const [scenario, setScenario] = useState('')
@@ -223,7 +225,26 @@ export function TestRunsView({ data }: { data: TestRunsData }) {
                     </thead>
                     <tbody>
                       {rows.map((run) => (
-                        <tr key={run._id}>
+                        <tr
+                          className="runs-table-row-link"
+                          key={run._id}
+                          role="link"
+                          tabIndex={0}
+                          aria-label={`View ${run.implementation?.name ?? 'unknown implementation'} test run for ${run.scenario?.name ?? 'unknown scenario'}`}
+                          onClick={() =>
+                            router.push(
+                              `/test-runs/${encodeURIComponent(run._id)}`,
+                            )
+                          }
+                          onKeyDown={(event) => {
+                            if (event.key === 'Enter' || event.key === ' ') {
+                              event.preventDefault()
+                              router.push(
+                                `/test-runs/${encodeURIComponent(run._id)}`,
+                              )
+                            }
+                          }}
+                        >
                           <td>
                             <div className="run-implementation">
                               <ImplementationIcon
@@ -231,7 +252,7 @@ export function TestRunsView({ data }: { data: TestRunsData }) {
                                 slug={run.implementation?.slug}
                               />
                               <span>
-                                <strong>
+                                <strong className="run-detail-link">
                                   {run.implementation?.name ?? 'Unknown'}
                                 </strong>
                                 <small>v{run.version}</small>

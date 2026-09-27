@@ -11,6 +11,7 @@ export type TestRunListItem = {
   version: string
   transport: 'stdio' | 'streamable-http'
   status: RunStatus
+  testedOn?: string
   startedAt?: string
   durationMs?: number
   observations?: string[]
@@ -29,7 +30,7 @@ const testRunsQuery = defineQuery(/* groq */ `{
     _id, _createdAt,
     "implementation": implementation->{_id, name, "slug": slug.current},
     "scenario": scenario->{_id, name, "slug": slug.current, category},
-    version, transport, status, startedAt, durationMs, observations,
+    version, transport, status, testedOn, startedAt, durationMs, observations,
     "evidenceCount": count(*[_type == "evidence" && testRun._ref == ^._id]),
     "findingCount": count(*[_type == "finding" && testRun._ref == ^._id])
   },
