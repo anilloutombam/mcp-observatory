@@ -1,0 +1,174 @@
+{
+  "schemaVersion": 1,
+  "release": "0.11.0",
+  "testedOn": "2026-09-27",
+  "capturedAt": "2026-09-27T14:21:39Z",
+  "sourceUrl": "https://github.com/anilloutombam/mcp-failure-lab/blob/main/docs/compatibility/v0.11.0.md",
+  "implementations": [
+    {
+      "name": "TypeScript MCP SDK",
+      "slug": "typescript-mcp-sdk",
+      "version": "1.30.1",
+      "repositoryUrl": "https://github.com/modelcontextprotocol/typescript-sdk",
+      "runs": [
+        {
+          "scenario": [
+            "Late Response After Cancellation",
+            "late-response-after-cancellation",
+            "lifecycle"
+          ],
+          "transport": "stdio",
+          "status": "passed",
+          "observation": "The cancelled call rejected with an abort error, the late response did not settle another request, and the following ping passed in all three repetitions.",
+          "raw": "Protocol: 2025-11-25\nActivation settled (ms): 101.70, 101.27, 100.82\nRecovery ping (ms): 4.29, 2.05, 3.66\nCleanup: pass in all three repetitions"
+        },
+        {
+          "scenario": [
+            "Session Loss After Response",
+            "session-loss-after-response",
+            "lifecycle"
+          ],
+          "transport": "streamable-http",
+          "status": "passed",
+          "observation": "The selected legacy HTTP session was lost after the activation response; that session rejected later calls while an unrelated session and a new client remained usable.",
+          "raw": "Protocol: 2025-11-25\nActivation (ms): 3.88, 2.52, 2.62\nLost-session rejection (ms): 1.67, 0.84, 0.79\nOther session (ms): 2.41, 1.26, 1.64\nReconnect (ms): 1.39, 1.03, 1.06\nCleanup: pass in all three repetitions"
+        },
+        {
+          "scenario": [
+            "Session Loss During Active Request",
+            "session-loss-during-active-request",
+            "lifecycle"
+          ],
+          "transport": "streamable-http",
+          "status": "passed",
+          "observation": "The interrupted activation failed, the lost session rejected later use, and both an unrelated session and a newly initialized session remained usable.",
+          "raw": "Protocol: 2025-11-25\nActivation failure (ms): 2.02, 1.51, 2.33\nLost-session rejection (ms): 1.77, 1.63, 2.34\nOther session (ms): 1.19, 1.26, 1.25\nReconnect (ms): 0.97, 1.04, 1.73\nCleanup: pass in all three repetitions"
+        }
+      ]
+    },
+    {
+      "name": "Python MCP SDK",
+      "slug": "python-mcp-sdk",
+      "version": "2.2.0",
+      "repositoryUrl": "https://github.com/modelcontextprotocol/python-sdk",
+      "runs": [
+        {
+          "scenario": [
+            "Late Response After Cancellation",
+            "late-response-after-cancellation",
+            "lifecycle"
+          ],
+          "transport": "stdio",
+          "status": "passed",
+          "observation": "The cancellation scope expired without a separate call error, the late response did not corrupt another request, and the following ping passed in all three repetitions.",
+          "raw": "Protocol: 2025-11-25\nActivation settled (ms): 101.28, 101.29, 101.34\nRecovery ping (ms): 5.16, 3.61, 3.41\nCleanup: pass in all three repetitions"
+        },
+        {
+          "scenario": [
+            "Session Loss After Response",
+            "session-loss-after-response",
+            "lifecycle"
+          ],
+          "transport": "streamable-http",
+          "status": "passed",
+          "observation": "The selected legacy HTTP session was lost after the activation response; the unrelated session and a newly initialized client remained usable despite a cleanup-time 404 message.",
+          "raw": "Protocol: 2025-11-25\nActivation (ms): 3.24, 3.82, 3.55\nLost-session rejection (ms): 1.42, 1.20, 1.16\nOther session (ms): 3.51, 2.98, 3.62\nReconnect (ms): 4.01, 4.26, 4.49\nCleanup context completed in all three repetitions"
+        },
+        {
+          "scenario": [
+            "Session Loss During Active Request",
+            "session-loss-during-active-request",
+            "lifecycle"
+          ],
+          "transport": "streamable-http",
+          "status": "failed",
+          "observation": "Active-request session loss cancelled the surrounding transport task context; another session in that context failed, cleanup raised an ExceptionGroup, and reconnect was not attempted.",
+          "raw": "Protocol: 2025-11-25\nActivation failure (ms): 2.26, 2.25, 2.30\nLost-session rejection (ms): 0.01, 0.08, 0.07\nOther session (ms): 0.01, 0.01, 0.01\nReconnect: not run\nCleanup: error in all three repetitions"
+        }
+      ]
+    },
+    {
+      "name": "Go MCP SDK",
+      "slug": "go-mcp-sdk",
+      "version": "1.7.0",
+      "repositoryUrl": "https://github.com/modelcontextprotocol/go-sdk",
+      "runs": [
+        {
+          "scenario": [
+            "Late Response After Cancellation",
+            "late-response-after-cancellation",
+            "lifecycle"
+          ],
+          "transport": "stdio",
+          "status": "passed",
+          "observation": "The call returned context deadline exceeded, the late response did not corrupt another request, and the following ping passed in all three repetitions.",
+          "raw": "Protocol: 2026-07-28\nActivation settled (ms): 100.39, 101.18, 101.16\nRecovery ping (ms): 8.11, 4.52, 6.32\nCleanup: pass in all three repetitions"
+        }
+      ]
+    },
+    {
+      "name": "Rust MCP SDK",
+      "slug": "rust-mcp-sdk",
+      "version": "3.4.0",
+      "repositoryUrl": "https://github.com/modelcontextprotocol/rust-sdk",
+      "runs": [
+        {
+          "scenario": [
+            "Late Response After Cancellation",
+            "late-response-after-cancellation",
+            "lifecycle"
+          ],
+          "transport": "stdio",
+          "status": "passed",
+          "observation": "The request timeout elapsed, the late response did not corrupt another request, and the following ping passed in all three repetitions.",
+          "raw": "Protocol: 2025-11-25\nActivation settled (ms): 102.14, 102.71, 102.14\nRecovery ping (ms): 14.80, 6.10, 5.63\nCleanup: pass in all three repetitions"
+        }
+      ]
+    },
+    {
+      "name": "C# MCP SDK",
+      "slug": "c-mcp-sdk",
+      "version": "2.2.0",
+      "repositoryUrl": "https://github.com/modelcontextprotocol/csharp-sdk",
+      "runs": [
+        {
+          "scenario": [
+            "Late Response After Cancellation",
+            "late-response-after-cancellation",
+            "lifecycle"
+          ],
+          "transport": "stdio",
+          "status": "passed",
+          "observation": "The call raised OperationCanceledException and the following ping passed in all three repetitions; disposal then waited approximately five seconds each time.",
+          "raw": "Protocol: 2026-07-28\nActivation settled (ms): 106.10, 106.03, 104.11\nRecovery ping (ms): 8.82, 8.25, 9.57\nCleanup (ms): 5065.34, 5064.62, 5063.25"
+        }
+      ]
+    }
+  ],
+  "findings": [
+    {
+      "id": "python-session-loss-task-context",
+      "implementationSlug": "python-mcp-sdk",
+      "scenarioSlug": "session-loss-during-active-request",
+      "statement": "Python MCP SDK 2.2.0 propagates active-request session loss through the surrounding transport task context.",
+      "category": "recovery",
+      "repository": "modelcontextprotocol/python-sdk",
+      "issueNumber": 3560,
+      "issueUrl": "https://github.com/modelcontextprotocol/python-sdk/issues/3560",
+      "commentUrl": "https://github.com/modelcontextprotocol/python-sdk/issues/3560#issuecomment-5856690625",
+      "reportedAt": "2026-09-27T14:24:37Z"
+    },
+    {
+      "id": "csharp-stdio-cleanup-timeout",
+      "implementationSlug": "c-mcp-sdk",
+      "scenarioSlug": "late-response-after-cancellation",
+      "statement": "C# MCP SDK 2.2.0 stdio cleanup waits for the five-second shutdown timeout after successful cancellation recovery.",
+      "category": "reliability",
+      "repository": "modelcontextprotocol/csharp-sdk",
+      "issueNumber": 1836,
+      "issueUrl": "https://github.com/modelcontextprotocol/csharp-sdk/issues/1836",
+      "commentUrl": "https://github.com/modelcontextprotocol/csharp-sdk/issues/1836#issuecomment-5856724827",
+      "reportedAt": "2026-09-27T14:29:26Z"
+    }
+  ]
+}
