@@ -9,7 +9,8 @@
     "lint": "eslint",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "backfill:findings": "tsx --env-file=.env.local scripts/backfill-finding-reporting.ts"
+    "backfill:findings": "tsx --env-file=.env.local scripts/backfill-finding-reporting.ts",
+    "import:upstream-findings": "tsx --env-file=.env.local scripts/import-upstream-findings.ts"
   },
   "dependencies": {
     "@sanity/image-url": "^2.1.1",
