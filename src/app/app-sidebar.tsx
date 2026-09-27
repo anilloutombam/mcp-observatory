@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { McpLogo } from './mcp-logo'
 
 type Page = 'overview' | 'runs' | 'findings'
 type NavIconName = 'overview' | 'runs' | 'findings' | 'compare'
@@ -52,7 +53,7 @@ export function AppSidebar({ active }: { active: Page }) {
   return (
     <aside className="sidebar runs-page-sidebar">
       <Link className="brand" href="/">
-        <div className="brand-mark">♜</div>
+        <div className="brand-mark"><McpLogo /></div>
         <div>
           <strong>MCP Failure Observatory</strong>
           <span>Built on MCP Failure Lab + Sanity</span>
