@@ -8,13 +8,14 @@ import type {
   FindingReviewStatus,
   FindingsData,
 } from '@/sanity/lib/findings'
-import { AppSidebar } from '../app-sidebar'
+import { AppPageShell } from '../app-page-shell'
 import {
   FindingReportingBadge,
   reportingLabels,
 } from '../finding-reporting-badge'
 import { ImplementationIcon } from '../implementation-icon'
 import { SummaryCard } from '../summary-card'
+import { SiteFooter } from '../site-footer'
 
 const PAGE_SIZE = 10
 const reviewLabels: Record<FindingReviewStatus, string> = {
@@ -203,193 +204,188 @@ export function FindingsView({ data }: { data: FindingsData }) {
   }
 
   return (
-    <div className="app-shell runs-page findings-page">
-      <AppSidebar active="findings" />
-      <main className="runs-workspace">
-        <header className="runs-topbar">
-          <div>
-            <p className="eyebrow">Compatibility intelligence</p>
-            <h1>Findings</h1>
-            <p>Review confirmed behavior and its upstream reporting state.</p>
-          </div>
-          <Link className="button button-secondary" href="/">
-            ← Overview
-          </Link>
-        </header>
-        <div className="runs-content">
-          <section className="runs-summary">
-            <SummaryCard
-              value={data.findings.length}
-              label="Total findings"
-              detail="Across all test runs"
-              icon="finding"
-              tone="blue"
-            />
-            <SummaryCard
-              value={
-                data.findings.filter((item) => item.status === 'verified')
-                  .length
-              }
-              label="Verified"
-              detail="Human-confirmed findings"
-              icon="verified"
-              tone="green"
-            />
-            <SummaryCard
-              value={
-                data.findings.filter((item) => item.status === 'needs-review')
-                  .length
-              }
-              label="Needs review"
-              detail="Awaiting confirmation"
-              icon="finding"
-              tone="purple"
-            />
-            <SummaryCard
-              value={
-                data.findings.filter((item) =>
-                  ['reported', 'already-reported', 'resolved'].includes(
-                    item.reportingStatus,
-                  ),
-                ).length
-              }
-              label="Upstream linked"
-              detail="Issues or evidence comments"
-              icon="passed"
-              tone="green"
-            />
-          </section>
+    <AppPageShell
+      active="findings"
+      className="findings-page"
+      title="Findings"
+      description="Review confirmed behavior and its upstream reporting state."
+      action={
+        <Link className="button button-secondary" href="/">
+          ← Overview
+        </Link>
+      }
+    >
+      <section className="runs-summary">
+        <SummaryCard
+          value={data.findings.length}
+          label="Total findings"
+          detail="Across all test runs"
+          icon="finding"
+          tone="blue"
+        />
+        <SummaryCard
+          value={
+            data.findings.filter((item) => item.status === 'verified').length
+          }
+          label="Verified"
+          detail="Human-confirmed findings"
+          icon="verified"
+          tone="green"
+        />
+        <SummaryCard
+          value={
+            data.findings.filter((item) => item.status === 'needs-review')
+              .length
+          }
+          label="Needs review"
+          detail="Awaiting confirmation"
+          icon="finding"
+          tone="purple"
+        />
+        <SummaryCard
+          value={
+            data.findings.filter((item) =>
+              ['reported', 'already-reported', 'resolved'].includes(
+                item.reportingStatus,
+              ),
+            ).length
+          }
+          label="Upstream linked"
+          detail="Issues or evidence comments"
+          icon="passed"
+          tone="green"
+        />
+      </section>
 
-          <section className="runs-panel">
-            <div className="findings-toolbar">
-              <label className="runs-search">
-                <SearchIcon />
-                <input
-                  value={search}
-                  onChange={update(setSearch)}
-                  placeholder="Search finding, implementation, or repository"
-                  aria-label="Search findings"
-                />
-              </label>
-              <select
-                value={reviewStatus}
-                onChange={update(setReviewStatus)}
-                aria-label="Filter by review status"
-              >
-                <option value="">All review statuses</option>
-                {Object.entries(reviewLabels).map(([value, label]) => (
-                  <option key={value} value={value}>
-                    {label}
-                  </option>
-                ))}
-              </select>
-              <select
-                value={reportingStatus}
-                onChange={update(setReportingStatus)}
-                aria-label="Filter by reporting status"
-              >
-                <option value="">All reporting states</option>
-                {Object.entries(reportingLabels).map(([value, label]) => (
-                  <option key={value} value={value}>
-                    {label}
-                  </option>
-                ))}
-              </select>
-              <select
-                value={repository}
-                onChange={update(setRepository)}
-                aria-label="Filter by repository"
-              >
-                <option value="">All repositories</option>
-                {repositories.map((item) => (
-                  <option key={item} value={item}>
-                    {item}
-                  </option>
-                ))}
-              </select>
-              <select
-                value={category}
-                onChange={update(setCategory)}
-                aria-label="Filter by category"
-              >
-                <option value="">All categories</option>
-                {categories.map((item) => (
-                  <option key={item} value={item}>
-                    {item}
-                  </option>
-                ))}
-              </select>
-              <select
-                value={implementation}
-                onChange={update(setImplementation)}
-                aria-label="Filter by implementation"
-              >
-                <option value="">All implementations</option>
-                {data.implementations.map((item) => (
-                  <option key={item._id} value={item._id}>
-                    {item.name}
-                  </option>
-                ))}
-              </select>
+      <section className="runs-panel">
+        <div className="findings-toolbar">
+          <label className="runs-search">
+            <SearchIcon />
+            <input
+              value={search}
+              onChange={update(setSearch)}
+              placeholder="Search finding, implementation, or repository"
+              aria-label="Search findings"
+            />
+          </label>
+          <select
+            value={reviewStatus}
+            onChange={update(setReviewStatus)}
+            aria-label="Filter by review status"
+          >
+            <option value="">All review statuses</option>
+            {Object.entries(reviewLabels).map(([value, label]) => (
+              <option key={value} value={value}>
+                {label}
+              </option>
+            ))}
+          </select>
+          <select
+            value={reportingStatus}
+            onChange={update(setReportingStatus)}
+            aria-label="Filter by reporting status"
+          >
+            <option value="">All reporting states</option>
+            {Object.entries(reportingLabels).map(([value, label]) => (
+              <option key={value} value={value}>
+                {label}
+              </option>
+            ))}
+          </select>
+          <select
+            value={repository}
+            onChange={update(setRepository)}
+            aria-label="Filter by repository"
+          >
+            <option value="">All repositories</option>
+            {repositories.map((item) => (
+              <option key={item} value={item}>
+                {item}
+              </option>
+            ))}
+          </select>
+          <select
+            value={category}
+            onChange={update(setCategory)}
+            aria-label="Filter by category"
+          >
+            <option value="">All categories</option>
+            {categories.map((item) => (
+              <option key={item} value={item}>
+                {item}
+              </option>
+            ))}
+          </select>
+          <select
+            value={implementation}
+            onChange={update(setImplementation)}
+            aria-label="Filter by implementation"
+          >
+            <option value="">All implementations</option>
+            {data.implementations.map((item) => (
+              <option key={item._id} value={item._id}>
+                {item.name}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="runs-results-bar">
+          <span>
+            <strong>{filtered.length}</strong> results
+          </span>
+          {(search ||
+            reviewStatus ||
+            reportingStatus ||
+            repository ||
+            category ||
+            implementation) && (
+            <button type="button" onClick={clear}>
+              Clear filters
+            </button>
+          )}
+        </div>
+
+        {visible.length ? (
+          <>
+            <div className="finding-list">
+              {visible.map((finding) => (
+                <FindingCard finding={finding} key={finding._id} />
+              ))}
             </div>
-            <div className="runs-results-bar">
+            <div className="pagination">
               <span>
-                <strong>{filtered.length}</strong> results
+                Page {current} of {pages}
               </span>
-              {(search ||
-                reviewStatus ||
-                reportingStatus ||
-                repository ||
-                category ||
-                implementation) && (
-                <button type="button" onClick={clear}>
-                  Clear filters
+              <div>
+                <button
+                  type="button"
+                  disabled={current === 1}
+                  onClick={() => setPage(current - 1)}
+                >
+                  Previous
                 </button>
-              )}
-            </div>
-
-            {visible.length ? (
-              <>
-                <div className="finding-list">
-                  {visible.map((finding) => (
-                    <FindingCard finding={finding} key={finding._id} />
-                  ))}
-                </div>
-                <div className="pagination">
-                  <span>
-                    Page {current} of {pages}
-                  </span>
-                  <div>
-                    <button
-                      type="button"
-                      disabled={current === 1}
-                      onClick={() => setPage(current - 1)}
-                    >
-                      Previous
-                    </button>
-                    <button
-                      type="button"
-                      disabled={current === pages}
-                      onClick={() => setPage(current + 1)}
-                    >
-                      Next
-                    </button>
-                  </div>
-                </div>
-              </>
-            ) : (
-              <div className="empty-state">
-                <span>◇</span>
-                <strong>No findings found</strong>
-                <p>Adjust your filters or clear the search.</p>
-                <button type="button" onClick={clear}>
-                  Clear filters
+                <button
+                  type="button"
+                  disabled={current === pages}
+                  onClick={() => setPage(current + 1)}
+                >
+                  Next
                 </button>
               </div>
-            )}
-          </section>
-        </div>
-      </main>
-    </div>
+            </div>
+          </>
+        ) : (
+          <div className="empty-state">
+            <span>◇</span>
+            <strong>No findings found</strong>
+            <p>Adjust your filters or clear the search.</p>
+            <button type="button" onClick={clear}>
+              Clear filters
+            </button>
+          </div>
+        )}
+      </section>
+      <SiteFooter />
+    </AppPageShell>
   )
 }

@@ -4,10 +4,11 @@ import Link from 'next/link'
 import { useMemo, useState, type ChangeEvent } from 'react'
 
 import type { TestRunsData } from '@/sanity/lib/test-runs'
-import { AppSidebar } from '../app-sidebar'
+import { AppPageShell } from '../app-page-shell'
 import { statusLabels } from '../status-badge'
 import { SummaryCard } from '../summary-card'
 import { TestRunTable } from '../test-run-table'
+import { SiteFooter } from '../site-footer'
 
 const PAGE_SIZE = 15
 
@@ -82,160 +83,153 @@ export function TestRunsView({ data }: { data: TestRunsData }) {
   }
 
   return (
-    <div className="app-shell runs-page">
-      <AppSidebar active="runs" />
-      <main className="runs-workspace">
-        <header className="runs-topbar">
-          <div>
-            <p className="eyebrow">Compatibility intelligence</p>
-            <h1>Test Runs</h1>
-            <p>Browse and compare every recorded compatibility test.</p>
-          </div>
-          <Link className="button button-secondary" href="/">
-            ← Overview
-          </Link>
-        </header>
-        <div className="runs-content">
-          <section className="runs-summary">
-            <SummaryCard
-              value={data.runs.length}
-              label="Total runs"
-              detail="Across all scenarios"
-              icon="runs"
-              tone="blue"
+    <AppPageShell
+      active="runs"
+      title="Test Runs"
+      description="Browse and compare every recorded compatibility test."
+      action={
+        <Link className="button button-secondary" href="/">
+          ← Overview
+        </Link>
+      }
+    >
+      <section className="runs-summary">
+        <SummaryCard
+          value={data.runs.length}
+          label="Total runs"
+          detail="Across all scenarios"
+          icon="runs"
+          tone="blue"
+        />
+        <SummaryCard
+          value={data.runs.filter((run) => run.status === 'passed').length}
+          label="Passed"
+          detail="Successful outcomes"
+          icon="passed"
+          tone="green"
+        />
+        <SummaryCard
+          value={data.runs.filter((run) => run.status === 'failed').length}
+          label="Failed"
+          detail="Recorded failures"
+          icon="failed"
+          tone="red"
+        />
+        <SummaryCard
+          value={data.runs.filter((run) => run.status === 'unsupported').length}
+          label="Unsupported"
+          detail="Unsupported combinations"
+          icon="unsupported"
+          tone="purple"
+        />
+      </section>
+      <section className="runs-panel">
+        <div className="runs-toolbar">
+          <label className="runs-search">
+            <SearchIcon />
+            <input
+              value={search}
+              onChange={update(setSearch)}
+              placeholder="Search implementation, scenario, or version"
+              aria-label="Search test runs"
             />
-            <SummaryCard
-              value={data.runs.filter((run) => run.status === 'passed').length}
-              label="Passed"
-              detail="Successful outcomes"
-              icon="passed"
-              tone="green"
-            />
-            <SummaryCard
-              value={data.runs.filter((run) => run.status === 'failed').length}
-              label="Failed"
-              detail="Recorded failures"
-              icon="failed"
-              tone="red"
-            />
-            <SummaryCard
-              value={
-                data.runs.filter((run) => run.status === 'unsupported').length
-              }
-              label="Unsupported"
-              detail="Unsupported combinations"
-              icon="unsupported"
-              tone="purple"
-            />
-          </section>
-          <section className="runs-panel">
-            <div className="runs-toolbar">
-              <label className="runs-search">
-                <SearchIcon />
-                <input
-                  value={search}
-                  onChange={update(setSearch)}
-                  placeholder="Search implementation, scenario, or version"
-                  aria-label="Search test runs"
-                />
-              </label>
-              <Filter
-                value={implementation}
-                onChange={update(setImplementation)}
-                label="Filter by implementation"
-                first="All implementations"
-                items={data.implementations}
-              />
-              <Filter
-                value={scenario}
-                onChange={update(setScenario)}
-                label="Filter by scenario"
-                first="All scenarios"
-                items={data.scenarios}
-              />
-              <select
-                value={status}
-                onChange={update(setStatus)}
-                aria-label="Filter by status"
-              >
-                <option value="">All statuses</option>
-                {Object.entries(statusLabels).map(([value, label]) => (
-                  <option key={value} value={value}>
-                    {label}
-                  </option>
-                ))}
-              </select>
-              <select
-                value={transport}
-                onChange={update(setTransport)}
-                aria-label="Filter by transport"
-              >
-                <option value="">All transports</option>
-                <option value="stdio">stdio</option>
-                <option value="streamable-http">Streamable HTTP</option>
-              </select>
-              <select
-                value={sort}
-                onChange={update(setSort)}
-                aria-label="Sort test runs"
-              >
-                <option value="newest">Newest first</option>
-                <option value="oldest">Oldest first</option>
-                <option value="implementation">Implementation A–Z</option>
-              </select>
-            </div>
-            <div className="runs-results-bar">
+          </label>
+          <Filter
+            value={implementation}
+            onChange={update(setImplementation)}
+            label="Filter by implementation"
+            first="All implementations"
+            items={data.implementations}
+          />
+          <Filter
+            value={scenario}
+            onChange={update(setScenario)}
+            label="Filter by scenario"
+            first="All scenarios"
+            items={data.scenarios}
+          />
+          <select
+            value={status}
+            onChange={update(setStatus)}
+            aria-label="Filter by status"
+          >
+            <option value="">All statuses</option>
+            {Object.entries(statusLabels).map(([value, label]) => (
+              <option key={value} value={value}>
+                {label}
+              </option>
+            ))}
+          </select>
+          <select
+            value={transport}
+            onChange={update(setTransport)}
+            aria-label="Filter by transport"
+          >
+            <option value="">All transports</option>
+            <option value="stdio">stdio</option>
+            <option value="streamable-http">Streamable HTTP</option>
+          </select>
+          <select
+            value={sort}
+            onChange={update(setSort)}
+            aria-label="Sort test runs"
+          >
+            <option value="newest">Newest first</option>
+            <option value="oldest">Oldest first</option>
+            <option value="implementation">Implementation A–Z</option>
+          </select>
+        </div>
+        <div className="runs-results-bar">
+          <span>
+            <strong>{filtered.length}</strong> results
+          </span>
+          {(search ||
+            implementation ||
+            scenario ||
+            status ||
+            transport ||
+            sort !== 'newest') && (
+            <button type="button" onClick={clear}>
+              Clear filters
+            </button>
+          )}
+        </div>
+        {rows.length ? (
+          <>
+            <TestRunTable runs={rows} />
+            <div className="pagination">
               <span>
-                <strong>{filtered.length}</strong> results
+                Page {current} of {pages}
               </span>
-              {(search ||
-                implementation ||
-                scenario ||
-                status ||
-                transport ||
-                sort !== 'newest') && (
-                <button type="button" onClick={clear}>
-                  Clear filters
+              <div>
+                <button
+                  disabled={current === 1}
+                  onClick={() => setPage(current - 1)}
+                >
+                  Previous
                 </button>
-              )}
-            </div>
-            {rows.length ? (
-              <>
-                <TestRunTable runs={rows} />
-                <div className="pagination">
-                  <span>
-                    Page {current} of {pages}
-                  </span>
-                  <div>
-                    <button
-                      disabled={current === 1}
-                      onClick={() => setPage(current - 1)}
-                    >
-                      Previous
-                    </button>
-                    <button
-                      disabled={current === pages}
-                      onClick={() => setPage(current + 1)}
-                    >
-                      Next
-                    </button>
-                  </div>
-                </div>
-              </>
-            ) : (
-              <div className="empty-state">
-                <span>◇</span>
-                <strong>No test runs found</strong>
-                <p>Adjust your filters or clear the search.</p>
-                <button type="button" onClick={clear}>
-                  Clear filters
+                <button
+                  disabled={current === pages}
+                  onClick={() => setPage(current + 1)}
+                >
+                  Next
                 </button>
               </div>
-            )}
-          </section>
-        </div>
-      </main>
-    </div>
+            </div>
+          </>
+        ) : (
+          <div className="empty-state">
+            <span>◇</span>
+            <strong>No test runs found</strong>
+            <p>Adjust your filters or clear the search.</p>
+            <button type="button" onClick={clear}>
+              Clear filters
+            </button>
+          </div>
+        )}
+      </section>
+      <SiteFooter />
+    </AppPageShell>
   )
 }
 

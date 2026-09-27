@@ -88,7 +88,7 @@ export function ImplementationDetailView({
   ).size
 
   return (
-    <div className="runs-content implementation-detail">
+    <div className="implementation-detail">
       <section className="implementation-profile">
         <div className="implementation-profile-identity">
           <ImplementationIcon

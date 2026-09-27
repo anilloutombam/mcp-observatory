@@ -9,9 +9,10 @@ import type {
 } from '@/sanity/lib/dashboard'
 import { ImplementationIcon } from './implementation-icon'
 import { SummaryCard } from './summary-card'
-import { AppSidebar } from './app-sidebar'
+import { AppShell } from './app-page-shell'
 import { StatusBadge, StatusIcon, statusLabels } from './status-badge'
 import { TransportBadge } from './transport-badge'
+import { SiteFooter } from './site-footer'
 
 const featureFlags = {
   runNewTest: false,
@@ -149,9 +150,8 @@ export function Dashboard({ data }: { data: DashboardData }) {
       run.status.includes(normalizedQuery),
   )
   return (
-    <div className="app-shell">
-      <AppSidebar active="overview" />
-      <main className="workspace" id="overview">
+    <AppShell active="overview" workspaceClassName="workspace">
+      <div id="overview">
         <header className="topbar">
           <label className="search">
             <Icon name="search" size={17} />
@@ -347,9 +347,10 @@ export function Dashboard({ data }: { data: DashboardData }) {
               )}
             </section>
           </div>
+          <SiteFooter />
         </div>
-      </main>
-    </div>
+      </div>
+    </AppShell>
   )
 }
 

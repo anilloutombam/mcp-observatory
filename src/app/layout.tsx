@@ -13,9 +13,27 @@ const geistMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-  title: 'MCP Failure Observatory',
+  metadataBase: new URL('https://observatory.mcplab.dev'),
+  title: {
+    default: 'MCP Failure Observatory',
+    template: '%s | MCP Failure Observatory',
+  },
   description:
-    'Compatibility intelligence for MCP implementations and failure scenarios.',
+    'Independent compatibility intelligence for MCP implementations, transports, and real failure scenarios.',
+  alternates: {
+    canonical: '/',
+  },
+  openGraph: {
+    type: 'website',
+    siteName: 'MCP Failure Observatory',
+    title: 'MCP Failure Observatory',
+    description:
+      'Independent compatibility intelligence for MCP implementations, transports, and real failure scenarios.',
+    url: '/',
+  },
+  twitter: {
+    card: 'summary_large_image',
+  },
   icons: {
     icon: [
       {

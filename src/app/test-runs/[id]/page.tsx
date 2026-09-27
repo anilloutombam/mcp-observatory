@@ -1,36 +1,64 @@
+import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 
 import { getTestRunDetail } from '@/sanity/lib/test-run-detail'
-import { AppSidebar } from '../../app-sidebar'
+import { AppPageShell } from '../../app-page-shell'
+import { SiteFooter } from '../../site-footer'
 import { TestRunDetailView } from './test-run-detail-view'
 
-export default async function TestRunDetailPage({
+type RouteProps = { params: Promise<{ id: string }> }
+
+export async function generateMetadata({
   params,
-}: {
-  params: Promise<{ id: string }>
-}) {
+}: RouteProps): Promise<Metadata> {
+  const { id } = await params
+  const decodedId = decodeURIComponent(id)
+  const run = await getTestRunDetail(decodedId)
+
+  if (!run) return { title: 'Test run not found' }
+
+  const implementation = run.implementation?.name ?? 'Unknown implementation'
+  const scenario = run.scenario?.name ?? 'Unknown scenario'
+  const title = `${implementation}: ${scenario}`
+  const description = `${run.status} result for ${implementation} v${run.version} on ${scenario} using ${run.transport}.`
+
+  return {
+    title,
+    description,
+    alternates: {
+      canonical: `/test-runs/${encodeURIComponent(run._id)}`,
+    },
+    openGraph: {
+      title,
+      description,
+      url: `/test-runs/${encodeURIComponent(run._id)}`,
+    },
+  }
+}
+
+export default async function TestRunDetailPage({ params }: RouteProps) {
   const { id } = await params
   const run = await getTestRunDetail(decodeURIComponent(id))
 
   if (!run) notFound()
 
   return (
-    <div className="app-shell runs-page">
-      <AppSidebar active="runs" />
-      <main className="runs-workspace">
-        <header className="runs-topbar test-run-topbar">
-          <div>
-            <p className="eyebrow">Test run</p>
-            <h1>{run.implementation?.name ?? 'Unknown implementation'}</h1>
-            <p>{run.scenario?.name ?? 'Unknown scenario'}</p>
-          </div>
-          <Link className="button button-secondary" href="/test-runs">
-            ← All test runs
-          </Link>
-        </header>
-        <TestRunDetailView run={run} />
-      </main>
-    </div>
+    <AppPageShell
+      active="runs"
+      eyebrow="Test run"
+      title={run.implementation?.name ?? 'Unknown implementation'}
+      description={run.scenario?.name ?? 'Unknown scenario'}
+      headerClassName="test-run-topbar"
+      contentClassName="test-run-detail-content"
+      action={
+        <Link className="button button-secondary" href="/test-runs">
+          ← All test runs
+        </Link>
+      }
+    >
+      <TestRunDetailView run={run} />
+      <SiteFooter />
+    </AppPageShell>
   )
 }
