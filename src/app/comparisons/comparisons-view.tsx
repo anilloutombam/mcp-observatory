@@ -9,10 +9,11 @@ import type {
   ComparisonsData,
 } from '@/sanity/lib/comparisons'
 import type { RunStatus } from '@/sanity/lib/dashboard'
-import { AppSidebar } from '../app-sidebar'
+import { AppPageShell } from '../app-page-shell'
 import { ImplementationIcon } from '../implementation-icon'
 import { StatusBadge, statusLabels } from '../status-badge'
 import { TransportBadge } from '../transport-badge'
+import { SiteFooter } from '../site-footer'
 
 const MAX_SELECTIONS = 4
 
@@ -111,261 +112,246 @@ export function ComparisonsView({ data }: { data: ComparisonsData }) {
   }
 
   return (
-    <div className="app-shell runs-page comparisons-page">
-      <AppSidebar active="compare" />
-      <main className="runs-workspace">
-        <header className="runs-topbar">
+    <AppPageShell
+      active="compare"
+      className="comparisons-page"
+      contentClassName="comparisons-content"
+      title="Comparisons"
+      description="Compare recorded MCP behavior by implementation, version, scenario, and transport."
+      action={
+        <Link className="button button-secondary" href="/">
+          ← Overview
+        </Link>
+      }
+    >
+      <section className="comparison-control-panel">
+        <div className="comparison-control-heading">
           <div>
-            <p className="eyebrow">Compatibility intelligence</p>
-            <h1>Comparisons</h1>
+            <h2>Choose implementations</h2>
             <p>
-              Compare recorded MCP behavior by implementation, version,
-              scenario, and transport.
+              Select two to four implementations. Version selectors appear
+              below.
             </p>
           </div>
-          <Link className="button button-secondary" href="/">
-            ← Overview
-          </Link>
-        </header>
+          <span>
+            {selected.length}/{MAX_SELECTIONS} selected
+          </span>
+        </div>
+        <div className="comparison-picker">
+          {data.implementations.map((implementation) => {
+            const checked = selectedIds.includes(implementation._id)
+            const disabled = !checked && selectedIds.length >= MAX_SELECTIONS
+            return (
+              <label
+                className={`comparison-choice${checked ? ' selected' : ''}${disabled ? ' disabled' : ''}`}
+                key={implementation._id}
+              >
+                <input
+                  type="checkbox"
+                  checked={checked}
+                  disabled={disabled}
+                  onChange={() => toggleImplementation(implementation)}
+                />
+                <ImplementationIcon
+                  name={implementation.name}
+                  slug={implementation.slug}
+                />
+                <span>
+                  <strong>{implementation.name}</strong>
+                  <small>{implementation.kind}</small>
+                </span>
+              </label>
+            )
+          })}
+        </div>
+      </section>
 
-        <div className="runs-content comparisons-content">
-          <section className="comparison-control-panel">
-            <div className="comparison-control-heading">
-              <div>
-                <h2>Choose implementations</h2>
-                <p>
-                  Select two to four implementations. Version selectors appear
-                  below.
-                </p>
-              </div>
-              <span>
-                {selected.length}/{MAX_SELECTIONS} selected
-              </span>
-            </div>
-            <div className="comparison-picker">
-              {data.implementations.map((implementation) => {
-                const checked = selectedIds.includes(implementation._id)
-                const disabled =
-                  !checked && selectedIds.length >= MAX_SELECTIONS
-                return (
-                  <label
-                    className={`comparison-choice${checked ? ' selected' : ''}${disabled ? ' disabled' : ''}`}
-                    key={implementation._id}
+      {selected.length >= 2 ? (
+        <>
+          <section className="comparison-toolbar-panel">
+            <div className="comparison-version-controls">
+              {selected.map((implementation) => (
+                <label key={implementation._id}>
+                  <span>{implementation.name}</span>
+                  <select
+                    value={
+                      selectedVersions[implementation._id] ??
+                      versionsFor(implementation)[0] ??
+                      ''
+                    }
+                    onChange={(event: ChangeEvent<HTMLSelectElement>) =>
+                      setSelectedVersions((current) => ({
+                        ...current,
+                        [implementation._id]: event.target.value,
+                      }))
+                    }
                   >
-                    <input
-                      type="checkbox"
-                      checked={checked}
-                      disabled={disabled}
-                      onChange={() => toggleImplementation(implementation)}
-                    />
+                    {versionsFor(implementation).map((version) => (
+                      <option key={version} value={version}>
+                        v{version}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              ))}
+            </div>
+            <div className="comparison-filters">
+              <select
+                value={scenarioId}
+                onChange={(event) => setScenarioId(event.target.value)}
+                aria-label="Filter by scenario"
+              >
+                <option value="">All scenarios</option>
+                {data.scenarios.map((scenario) => (
+                  <option key={scenario._id} value={scenario._id}>
+                    {scenario.name}
+                  </option>
+                ))}
+              </select>
+              <select
+                value={transport}
+                onChange={(event) => setTransport(event.target.value)}
+                aria-label="Filter by transport"
+              >
+                <option value="">Both transports</option>
+                <option value="stdio">stdio</option>
+                <option value="streamable-http">Streamable HTTP</option>
+              </select>
+            </div>
+          </section>
+
+          <section className="comparison-summaries">
+            {selected.map((implementation) => {
+              const version =
+                selectedVersions[implementation._id] ??
+                versionsFor(implementation)[0]
+              const runs = latestResults(
+                implementation.runs.filter(
+                  (run) =>
+                    run.version === version && matchesTransport(run, transport),
+                ),
+              )
+              return (
+                <article
+                  className="comparison-summary-card"
+                  key={implementation._id}
+                >
+                  <div className="comparison-summary-name">
                     <ImplementationIcon
                       name={implementation.name}
                       slug={implementation.slug}
                     />
                     <span>
                       <strong>{implementation.name}</strong>
-                      <small>{implementation.kind}</small>
+                      <small>v{version}</small>
                     </span>
-                  </label>
-                )
-              })}
-            </div>
+                  </div>
+                  <dl>
+                    <div>
+                      <dt>Passed</dt>
+                      <dd className="comparison-passed">
+                        {countStatus(runs, 'passed')}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt>Failed</dt>
+                      <dd className="comparison-failed">
+                        {countStatus(runs, 'failed')}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt>Review</dt>
+                      <dd>{countStatus(runs, 'needs-review')}</dd>
+                    </div>
+                    <div>
+                      <dt>Unsupported</dt>
+                      <dd>{countStatus(runs, 'unsupported')}</dd>
+                    </div>
+                  </dl>
+                  <Link
+                    href={`/implementations/${encodeURIComponent(implementation.slug)}`}
+                  >
+                    View implementation →
+                  </Link>
+                </article>
+              )
+            })}
           </section>
 
-          {selected.length >= 2 ? (
-            <>
-              <section className="comparison-toolbar-panel">
-                <div className="comparison-version-controls">
-                  {selected.map((implementation) => (
-                    <label key={implementation._id}>
-                      <span>{implementation.name}</span>
-                      <select
-                        value={
-                          selectedVersions[implementation._id] ??
-                          versionsFor(implementation)[0] ??
-                          ''
-                        }
-                        onChange={(event: ChangeEvent<HTMLSelectElement>) =>
-                          setSelectedVersions((current) => ({
-                            ...current,
-                            [implementation._id]: event.target.value,
-                          }))
-                        }
-                      >
-                        {versionsFor(implementation).map((version) => (
-                          <option key={version} value={version}>
-                            v{version}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
-                  ))}
-                </div>
-                <div className="comparison-filters">
-                  <select
-                    value={scenarioId}
-                    onChange={(event) => setScenarioId(event.target.value)}
-                    aria-label="Filter by scenario"
-                  >
-                    <option value="">All scenarios</option>
-                    {data.scenarios.map((scenario) => (
-                      <option key={scenario._id} value={scenario._id}>
-                        {scenario.name}
-                      </option>
+          <section className="comparison-matrix-panel">
+            <div className="detail-section-heading">
+              <div>
+                <h2>Scenario comparison</h2>
+                <p>Each result is linked to its recorded Test Run.</p>
+              </div>
+              <span>{scenarios.length}</span>
+            </div>
+            {scenarios.length ? (
+              <div className="comparison-table-wrap">
+                <table className="comparison-table">
+                  <thead>
+                    <tr>
+                      <th>Scenario</th>
+                      {selected.map((implementation) => (
+                        <th key={implementation._id}>{implementation.name}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {scenarios.map((scenario) => (
+                      <tr key={scenario._id}>
+                        <th scope="row">
+                          <strong>{scenario.name}</strong>
+                          <small>{scenario.category}</small>
+                        </th>
+                        {selected.map((implementation) => {
+                          const version =
+                            selectedVersions[implementation._id] ??
+                            versionsFor(implementation)[0]
+                          const results = latestResults(
+                            implementation.runs.filter(
+                              (run) =>
+                                run.version === version &&
+                                run.scenario?._id === scenario._id &&
+                                matchesTransport(run, transport),
+                            ),
+                          )
+                          return (
+                            <td key={implementation._id}>
+                              {results.length ? (
+                                results.map((run) => (
+                                  <ComparisonResult key={run._id} run={run} />
+                                ))
+                              ) : (
+                                <span className="comparison-no-data">
+                                  No record
+                                </span>
+                              )}
+                            </td>
+                          )
+                        })}
+                      </tr>
                     ))}
-                  </select>
-                  <select
-                    value={transport}
-                    onChange={(event) => setTransport(event.target.value)}
-                    aria-label="Filter by transport"
-                  >
-                    <option value="">Both transports</option>
-                    <option value="stdio">stdio</option>
-                    <option value="streamable-http">Streamable HTTP</option>
-                  </select>
-                </div>
-              </section>
-
-              <section className="comparison-summaries">
-                {selected.map((implementation) => {
-                  const version =
-                    selectedVersions[implementation._id] ??
-                    versionsFor(implementation)[0]
-                  const runs = latestResults(
-                    implementation.runs.filter(
-                      (run) =>
-                        run.version === version &&
-                        matchesTransport(run, transport),
-                    ),
-                  )
-                  return (
-                    <article
-                      className="comparison-summary-card"
-                      key={implementation._id}
-                    >
-                      <div className="comparison-summary-name">
-                        <ImplementationIcon
-                          name={implementation.name}
-                          slug={implementation.slug}
-                        />
-                        <span>
-                          <strong>{implementation.name}</strong>
-                          <small>v{version}</small>
-                        </span>
-                      </div>
-                      <dl>
-                        <div>
-                          <dt>Passed</dt>
-                          <dd className="comparison-passed">
-                            {countStatus(runs, 'passed')}
-                          </dd>
-                        </div>
-                        <div>
-                          <dt>Failed</dt>
-                          <dd className="comparison-failed">
-                            {countStatus(runs, 'failed')}
-                          </dd>
-                        </div>
-                        <div>
-                          <dt>Review</dt>
-                          <dd>{countStatus(runs, 'needs-review')}</dd>
-                        </div>
-                        <div>
-                          <dt>Unsupported</dt>
-                          <dd>{countStatus(runs, 'unsupported')}</dd>
-                        </div>
-                      </dl>
-                      <Link
-                        href={`/implementations/${encodeURIComponent(implementation.slug)}`}
-                      >
-                        View implementation →
-                      </Link>
-                    </article>
-                  )
-                })}
-              </section>
-
-              <section className="comparison-matrix-panel">
-                <div className="detail-section-heading">
-                  <div>
-                    <h2>Scenario comparison</h2>
-                    <p>Each result is linked to its recorded Test Run.</p>
-                  </div>
-                  <span>{scenarios.length}</span>
-                </div>
-                {scenarios.length ? (
-                  <div className="comparison-table-wrap">
-                    <table className="comparison-table">
-                      <thead>
-                        <tr>
-                          <th>Scenario</th>
-                          {selected.map((implementation) => (
-                            <th key={implementation._id}>
-                              {implementation.name}
-                            </th>
-                          ))}
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {scenarios.map((scenario) => (
-                          <tr key={scenario._id}>
-                            <th scope="row">
-                              <strong>{scenario.name}</strong>
-                              <small>{scenario.category}</small>
-                            </th>
-                            {selected.map((implementation) => {
-                              const version =
-                                selectedVersions[implementation._id] ??
-                                versionsFor(implementation)[0]
-                              const results = latestResults(
-                                implementation.runs.filter(
-                                  (run) =>
-                                    run.version === version &&
-                                    run.scenario?._id === scenario._id &&
-                                    matchesTransport(run, transport),
-                                ),
-                              )
-                              return (
-                                <td key={implementation._id}>
-                                  {results.length ? (
-                                    results.map((run) => (
-                                      <ComparisonResult
-                                        key={run._id}
-                                        run={run}
-                                      />
-                                    ))
-                                  ) : (
-                                    <span className="comparison-no-data">
-                                      No record
-                                    </span>
-                                  )}
-                                </td>
-                              )
-                            })}
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                ) : (
-                  <div className="detail-empty">
-                    No recorded scenarios match this comparison.
-                  </div>
-                )}
-              </section>
-            </>
-          ) : (
-            <section className="comparison-prompt">
-              <span>⇄</span>
-              <h2>Select at least two implementations</h2>
-              <p>
-                Choose implementations above to build a compatibility
-                comparison.
-              </p>
-            </section>
-          )}
-        </div>
-      </main>
-    </div>
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div className="detail-empty">
+                No recorded scenarios match this comparison.
+              </div>
+            )}
+          </section>
+        </>
+      ) : (
+        <section className="comparison-prompt">
+          <span>⇄</span>
+          <h2>Select at least two implementations</h2>
+          <p>
+            Choose implementations above to build a compatibility comparison.
+          </p>
+        </section>
+      )}
+      <SiteFooter />
+    </AppPageShell>
   )
 }

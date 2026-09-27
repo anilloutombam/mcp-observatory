@@ -92,7 +92,7 @@ export function TestRunDetailView({ run }: { run: TestRunDetail }) {
   const duration = formatDuration(run.durationMs)
 
   return (
-    <div className="runs-content test-run-detail">
+    <div className="test-run-detail">
       <section className="detail-summary" aria-label="Test run summary">
         <Link
           className="detail-implementation"

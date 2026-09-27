@@ -1,23 +1,22 @@
+import type { Metadata } from 'next'
+
 import { getFindingsData } from '@/sanity/lib/findings'
 import { FindingsView } from './findings-view'
 
+export const metadata: Metadata = {
+  title: 'Findings',
+  description:
+    'Review verified MCP compatibility findings, supporting evidence, and upstream reporting state.',
+  alternates: { canonical: '/findings' },
+  openGraph: {
+    title: 'Findings',
+    description:
+      'Review verified MCP compatibility findings, supporting evidence, and upstream reporting state.',
+    url: '/findings',
+  },
+}
+
 export default async function FindingsPage() {
-  let data
-
-  try {
-    data = await getFindingsData()
-  } catch (error) {
-    console.error('Unable to load findings', error)
-    return (
-      <main className="centered-state">
-        <div>
-          <span>!</span>
-          <h1>Findings are unavailable</h1>
-          <p>We couldn’t reach Sanity. Try again shortly.</p>
-        </div>
-      </main>
-    )
-  }
-
+  const data = await getFindingsData()
   return <FindingsView data={data} />
 }

@@ -1,39 +1,66 @@
+import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 
 import { getImplementationDetail } from '@/sanity/lib/implementation-detail'
-import { AppSidebar } from '../../app-sidebar'
+import { AppPageShell } from '../../app-page-shell'
+import { SiteFooter } from '../../site-footer'
 import { ImplementationDetailView } from './implementation-detail-view'
 
-export default async function ImplementationDetailPage({
+type RouteProps = { params: Promise<{ slug: string }> }
+
+export async function generateMetadata({
   params,
-}: {
-  params: Promise<{ slug: string }>
-}) {
+}: RouteProps): Promise<Metadata> {
+  const { slug } = await params
+  const decodedSlug = decodeURIComponent(slug)
+  const implementation = await getImplementationDetail(decodedSlug)
+
+  if (!implementation) return { title: 'Implementation not found' }
+
+  const description =
+    implementation.description ??
+    `Compatibility history, tested versions, and recorded outcomes for ${implementation.name}.`
+
+  return {
+    title: implementation.name,
+    description,
+    alternates: {
+      canonical: `/implementations/${encodeURIComponent(implementation.slug)}`,
+    },
+    openGraph: {
+      title: implementation.name,
+      description,
+      url: `/implementations/${encodeURIComponent(implementation.slug)}`,
+    },
+  }
+}
+
+export default async function ImplementationDetailPage({ params }: RouteProps) {
   const { slug } = await params
   const implementation = await getImplementationDetail(decodeURIComponent(slug))
 
   if (!implementation) notFound()
 
   return (
-    <div className="app-shell runs-page">
-      <AppSidebar active="overview" />
-      <main className="runs-workspace">
-        <header className="runs-topbar implementation-topbar">
-          <div>
-            <p className="eyebrow">Implementation</p>
-            <h1>{implementation.name}</h1>
-            <p>
-              {implementation.description ??
-                'MCP compatibility history and recorded outcomes.'}
-            </p>
-          </div>
-          <Link className="button button-secondary" href="/">
-            ← Overview
-          </Link>
-        </header>
-        <ImplementationDetailView implementation={implementation} />
-      </main>
-    </div>
+    <AppPageShell
+      active="overview"
+      eyebrow="Implementation"
+      title={implementation.name}
+      description={
+        implementation.description ??
+        'MCP compatibility history and recorded outcomes.'
+      }
+      headerClassName="implementation-topbar"
+      contentClassName="implementation-detail-content"
+      action={
+        <Link className="button button-secondary" href="/">
+          ← Overview
+        </Link>
+      }
+    >
+      <ImplementationDetailView implementation={implementation} />
+      <SiteFooter />
+    </AppPageShell>
   )
 }

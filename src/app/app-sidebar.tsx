@@ -1,7 +1,10 @@
+'use client'
+
 import Image from 'next/image'
 import Link from 'next/link'
+import { useEffect, useState } from 'react'
 
-type Page = 'overview' | 'runs' | 'findings' | 'compare'
+export type AppPage = 'overview' | 'runs' | 'findings' | 'compare'
 type NavIconName = 'overview' | 'runs' | 'findings' | 'compare'
 
 const items: Array<{ icon: NavIconName; label: string; href: string }> = [
@@ -49,7 +52,20 @@ function NavIcon({ name }: { name: NavIconName }) {
   )
 }
 
-export function AppSidebar({ active }: { active: Page }) {
+export function AppSidebar({ active }: { active?: AppPage }) {
+  const [mobileOpen, setMobileOpen] = useState(false)
+
+  useEffect(() => {
+    if (!mobileOpen) return
+
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setMobileOpen(false)
+    }
+
+    window.addEventListener('keydown', closeOnEscape)
+    return () => window.removeEventListener('keydown', closeOnEscape)
+  }, [mobileOpen])
+
   return (
     <aside className="sidebar runs-page-sidebar">
       <Link className="brand" href="/">
@@ -67,18 +83,65 @@ export function AppSidebar({ active }: { active: Page }) {
           <span>Built on MCP Failure Lab + Sanity</span>
         </div>
       </Link>
-      <nav aria-label="Main navigation">
+      <button
+        className="mobile-menu-toggle"
+        type="button"
+        aria-expanded={mobileOpen}
+        aria-controls="mobile-navigation"
+        aria-label={
+          mobileOpen ? 'Close navigation menu' : 'Open navigation menu'
+        }
+        onClick={() => setMobileOpen((current) => !current)}
+      >
+        <svg
+          aria-hidden="true"
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+        >
+          {mobileOpen ? (
+            <>
+              <path d="m6 6 12 12" />
+              <path d="M18 6 6 18" />
+            </>
+          ) : (
+            <>
+              <path d="M4 7h16" />
+              <path d="M4 12h16" />
+              <path d="M4 17h16" />
+            </>
+          )}
+        </svg>
+      </button>
+      <nav
+        id="mobile-navigation"
+        className={mobileOpen ? 'mobile-open' : undefined}
+        aria-label="Main navigation"
+      >
         {items.map((item) => (
           <Link
             className={item.icon === active ? 'active' : undefined}
             href={item.href}
             key={item.icon}
+            onClick={() => setMobileOpen(false)}
           >
             <NavIcon name={item.icon} />
             <span>{item.label}</span>
           </Link>
         ))}
       </nav>
+      {mobileOpen && (
+        <button
+          className="mobile-nav-backdrop"
+          type="button"
+          aria-label="Close navigation menu"
+          onClick={() => setMobileOpen(false)}
+        />
+      )}
       <div className="sidebar-footer">
         <span>
           <i />
