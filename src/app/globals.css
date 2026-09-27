@@ -54,8 +54,14 @@ input {
 }
 .brand-mark {
   color: #68a0ff;
-  font-size: 28px;
-  transform: rotate(180deg);
+  width: 25px;
+  height: 25px;
+  flex: 0 0 25px;
+}
+.brand-mark svg {
+  display: block;
+  width: 100%;
+  height: 100%;
 }
 .brand strong {
   display: block;
@@ -380,8 +386,9 @@ input {
   gap: 9px;
 }
 .implementation-logo {
-  display: grid;
-  place-items: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   flex: 0 0 29px;
   width: 29px;
   height: 29px;
@@ -390,8 +397,10 @@ input {
   color: #50617a;
 }
 .implementation-logo svg {
+  display: block;
   width: 21px;
   height: 21px;
+  overflow: visible;
 }
 .implementation-logo.logo-typescript {
   color: #3178c6;
@@ -412,9 +421,25 @@ input {
   color: #6f42c1;
   background: #efe8fb;
 }
-.implementation-logo.logo-inspector {
+.implementation-logo.logo-mcp {
   color: #475569;
   background: #e9eef5;
+}
+.implementation-logo.logo-proxy {
+  color: #2563a8;
+  background: #e7f0fb;
+}
+.implementation-logo.logo-github {
+  color: #181717;
+  background: #edf0f4;
+}
+.implementation-logo.logo-server {
+  color: #087a68;
+  background: #e3f5f1;
+}
+.implementation-logo.logo-fallback {
+  color: #52617a;
+  background: #edf1f6;
 }
 .implementation strong,
 .implementation small {
@@ -1180,22 +1205,44 @@ input {
 .detail-implementation,
 .detail-summary-item {
   min-width: 145px;
+  flex: 1 1 145px;
   padding: 18px 22px;
   border-right: 1px solid var(--line);
 }
 .detail-implementation {
   min-width: 270px;
+  flex: 1.7 1 270px;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 12px;
+  justify-content: center;
+  gap: 8px;
+  text-align: center;
+}
+.detail-summary > :last-child {
+  border-right: 0;
 }
 .detail-implementation span,
 .detail-summary-item {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
+  align-items: center;
   justify-content: center;
   gap: 6px;
+  text-align: center;
+}
+.detail-implementation > span {
+  align-items: center;
+  gap: 4px;
+}
+.detail-implementation > .implementation-logo {
+  flex-basis: 34px;
+  width: 34px;
+  height: 34px;
+}
+.detail-implementation > .implementation-logo svg {
+  width: 24px;
+  height: 24px;
 }
 .detail-implementation small,
 .detail-summary-item > small {
