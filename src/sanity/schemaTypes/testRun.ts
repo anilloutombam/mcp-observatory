@@ -7,6 +7,28 @@ export const testRunType = defineType({
 
   fields: [
     defineField({
+      name: 'sourceKey',
+      title: 'Import Source ID',
+      type: 'string',
+      description: 'Stable source identifier used by idempotent importers.',
+      readOnly: true,
+    }),
+
+    defineField({
+      name: 'sourceReportUrl',
+      title: 'Source Report',
+      type: 'url',
+    }),
+
+    defineField({
+      name: 'testedOn',
+      title: 'Tested On',
+      type: 'date',
+      description:
+        'Report date when an exact execution timestamp is unavailable.',
+    }),
+
+    defineField({
       name: 'implementation',
       title: 'Implementation',
       type: 'reference',

@@ -7,6 +7,14 @@ export const evidenceType = defineType({
 
   fields: [
     defineField({
+      name: 'sourceKey',
+      title: 'Import Source ID',
+      type: 'string',
+      description: 'Stable source identifier used by idempotent importers.',
+      readOnly: true,
+    }),
+
+    defineField({
       name: 'testRun',
       title: 'Test Run',
       type: 'reference',
