@@ -16,6 +16,20 @@ export const metadata: Metadata = {
   title: 'MCP Failure Observatory',
   description:
     'Compatibility intelligence for MCP implementations and failure scenarios.',
+  icons: {
+    icon: [
+      {
+        url: '/brand/mcp-failure-lab-mark-light.svg',
+        type: 'image/svg+xml',
+        media: '(prefers-color-scheme: light)',
+      },
+      {
+        url: '/brand/mcp-failure-lab-mark-dark.svg',
+        type: 'image/svg+xml',
+        media: '(prefers-color-scheme: dark)',
+      },
+    ],
+  },
 }
 
 export default function RootLayout({ children }: LayoutProps<'/'>) {

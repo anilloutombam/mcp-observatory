@@ -1,14 +1,14 @@
+import Image from 'next/image'
 import Link from 'next/link'
-import { McpLogo } from './mcp-logo'
 
-type Page = 'overview' | 'runs' | 'findings'
+type Page = 'overview' | 'runs' | 'findings' | 'compare'
 type NavIconName = 'overview' | 'runs' | 'findings' | 'compare'
 
 const items: Array<{ icon: NavIconName; label: string; href: string }> = [
   { icon: 'overview', label: 'Overview', href: '/' },
   { icon: 'runs', label: 'Test Runs', href: '/test-runs' },
   { icon: 'findings', label: 'Findings', href: '/findings' },
-  { icon: 'compare', label: 'Comparisons', href: '/#compare' },
+  { icon: 'compare', label: 'Comparisons', href: '/comparisons' },
 ]
 
 function NavIcon({ name }: { name: NavIconName }) {
@@ -54,7 +54,13 @@ export function AppSidebar({ active }: { active: Page }) {
     <aside className="sidebar runs-page-sidebar">
       <Link className="brand" href="/">
         <div className="brand-mark">
-          <McpLogo />
+          <Image
+            src="/brand/mcp-failure-lab-mark-dark.svg"
+            alt=""
+            width={25}
+            height={25}
+            priority
+          />
         </div>
         <div>
           <strong>MCP Failure Observatory</strong>
