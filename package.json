@@ -11,6 +11,7 @@
     "format:check": "prettier --check .",
     "backfill:findings": "tsx --env-file=.env.local scripts/backfill-finding-reporting.ts",
     "backfill:implementation-repositories": "tsx --env-file=.env.local scripts/backfill-implementation-repositories.ts",
+    "import:lifecycle-compatibility": "tsx --env-file=.env.local scripts/import-lifecycle-compatibility.ts",
     "import:upstream-findings": "tsx --env-file=.env.local scripts/import-upstream-findings.ts"
   },
   "dependencies": {
