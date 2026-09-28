@@ -15,6 +15,7 @@ import { CopyPageLinkButton, useShareableUrl } from '../shareable-url'
 import { StatusBadge, statusLabels } from '../status-badge'
 import { TransportBadge } from '../transport-badge'
 import { SiteFooter } from '../site-footer'
+import { parseComparisonParam, serializeComparisons } from './comparison-url'
 
 const MAX_SELECTIONS = 4
 const validTransports = new Set(['stdio', 'streamable-http'])
@@ -69,21 +70,7 @@ export function ComparisonsView({
   const defaults = data.implementations
     .filter((item) => item.runs.length)
     .slice(0, 2)
-  const requestedComparisons =
-    initialFilters.compare === 'none'
-      ? []
-      : (initialFilters.compare ?? '')
-          .split(',')
-          .filter(Boolean)
-          .map((entry) => {
-            const separator = entry.indexOf('@')
-            return separator === -1
-              ? { slug: entry, version: undefined }
-              : {
-                  slug: entry.slice(0, separator),
-                  version: entry.slice(separator + 1),
-                }
-          })
+  const requestedComparisons = parseComparisonParam(initialFilters.compare)
   const requestedSlugs = requestedComparisons
     .map((item) => item.slug)
     .filter((slug) => data.implementations.some((item) => item.slug === slug))
@@ -125,9 +112,7 @@ export function ComparisonsView({
 
   const selected = useMemo(
     () =>
-      data.implementations.filter((item) =>
-        selectedSlugs.includes(item.slug),
-      ),
+      data.implementations.filter((item) => selectedSlugs.includes(item.slug)),
     [data.implementations, selectedSlugs],
   )
   const selectedRuns = useMemo(
@@ -154,15 +139,15 @@ export function ComparisonsView({
     [data.scenarios, scenarioSlug, selectedRuns],
   )
 
-  const comparisonValue = selected
-    .map((implementation) => {
+  const comparisonValue = serializeComparisons(
+    selected.map((implementation) => {
       const version =
         selectedVersions[implementation.slug] ?? versionsFor(implementation)[0]
-      return `${implementation.slug}@${version}`
-    })
-    .join(',')
+      return { slug: implementation.slug, version }
+    }),
+  )
   useShareableUrl({
-    compare: comparisonValue || 'none',
+    compare: comparisonValue,
     scenario: scenarioSlug || undefined,
     transport: transport || undefined,
   })

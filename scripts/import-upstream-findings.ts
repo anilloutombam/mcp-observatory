@@ -1,61 +1,10 @@
 import { readFile } from 'node:fs/promises'
 import { createClient } from '@sanity/client'
-
-type Transport = 'stdio' | 'streamable-http'
-type RunStatus = 'passed' | 'failed' | 'needs-review'
-type ImplementationKind = 'server' | 'proxy'
-type FindingCategory =
-  | 'compatibility'
-  | 'recovery'
-  | 'protocol-behavior'
-  | 'transport'
-  | 'reliability'
-  | 'other'
-type ReportingStatus = 'reported' | 'already-reported'
-
-type SourceRun = [
-  key: string,
-  transport: Transport,
-  status: RunStatus,
-  durationMs: number | null,
-  observation: string,
-]
-
-type SourceFinding = {
-  id: string
-  run: string
-  statement: string
-  category: FindingCategory
-  reportingStatus: ReportingStatus
-  repository: string
-  issueNumber: number
-  issueUrl: string
-  commentUrl?: string
-  reportedAt: string
-}
-
-type SourceReport = {
-  id: string
-  testedOn: string
-  sourceUrl: string
-  implementation: {
-    name: string
-    slug: string
-    version: string
-    kind: ImplementationKind
-    repositoryUrl: string
-  }
-  outcomes: Array<{
-    scenario: [name: string, slug: string, category: string]
-    runs: SourceRun[]
-  }>
-  findings?: SourceFinding[]
-}
-
-type SourceData = {
-  schemaVersion: number
-  reports: SourceReport[]
-}
+import {
+  runSourceKey,
+  type SourceData,
+  validateSource,
+} from './lib/upstream-import'
 
 const projectId = process.env.NEXT_PUBLIC_SANITY_PROJECT_ID
 const dataset = process.env.NEXT_PUBLIC_SANITY_DATASET
@@ -132,46 +81,6 @@ async function findOrCreateBySourceKey(
   })
   counters.created[type] += 1
   return created._id
-}
-
-function runSourceKey(reportId: string, scenarioSlug: string, runKey: string) {
-  return `mcp-failure-lab:${reportId}:${scenarioSlug}:${runKey}`
-}
-
-function validateSource(data: SourceData) {
-  if (data.schemaVersion !== 1) throw new Error('Unsupported source schema.')
-
-  const reportIds = new Set<string>()
-  const sourceKeys = new Set<string>()
-
-  for (const report of data.reports) {
-    if (reportIds.has(report.id))
-      throw new Error(`Duplicate report: ${report.id}`)
-    reportIds.add(report.id)
-
-    const runAliases = new Set<string>()
-    for (const outcome of report.outcomes) {
-      const [, scenarioSlug] = outcome.scenario
-      for (const [key] of outcome.runs) {
-        const alias = `${scenarioSlug}:${key}`
-        const sourceKey = runSourceKey(report.id, scenarioSlug, key)
-        if (runAliases.has(alias))
-          throw new Error(`Duplicate run alias: ${report.id}:${alias}`)
-        if (sourceKeys.has(sourceKey))
-          throw new Error(`Duplicate source key: ${sourceKey}`)
-        runAliases.add(alias)
-        sourceKeys.add(sourceKey)
-      }
-    }
-
-    for (const finding of report.findings ?? []) {
-      if (!runAliases.has(finding.run)) {
-        throw new Error(
-          `Finding ${report.id}:${finding.id} references missing run ${finding.run}.`,
-        )
-      }
-    }
-  }
 }
 
 async function main() {
