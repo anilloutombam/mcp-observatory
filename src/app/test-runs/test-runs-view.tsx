@@ -231,7 +231,7 @@ export function TestRunsView({
           </select>
         </div>
         <div className="runs-results-bar">
-          <span>
+          <span aria-live="polite" aria-atomic="true">
             <strong>{filtered.length}</strong> results
           </span>
           <div className="runs-results-actions">
@@ -257,12 +257,14 @@ export function TestRunsView({
               </span>
               <div>
                 <button
+                  type="button"
                   disabled={current === 1}
                   onClick={() => setPage(current - 1)}
                 >
                   Previous
                 </button>
                 <button
+                  type="button"
                   disabled={current === pages}
                   onClick={() => setPage(current + 1)}
                 >

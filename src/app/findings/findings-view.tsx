@@ -108,7 +108,7 @@ function FindingCard({ finding }: { finding: FindingListItem }) {
               <strong>{finding.upstreamRepository}</strong>
             </span>
           )}
-          <span>
+          <span aria-live="polite" aria-atomic="true">
             <small>Evidence</small>
             <strong>{finding.supportingEvidenceCount}</strong>
           </span>

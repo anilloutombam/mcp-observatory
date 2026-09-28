@@ -2,7 +2,7 @@
 
 import Image from 'next/image'
 import Link from 'next/link'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 export type AppPage = 'overview' | 'runs' | 'findings' | 'compare'
 type NavIconName = 'overview' | 'runs' | 'findings' | 'compare'
@@ -54,16 +54,50 @@ function NavIcon({ name }: { name: NavIconName }) {
 
 export function AppSidebar({ active }: { active?: AppPage }) {
   const [mobileOpen, setMobileOpen] = useState(false)
+  const toggleRef = useRef<HTMLButtonElement>(null)
+  const navRef = useRef<HTMLElement>(null)
 
   useEffect(() => {
     if (!mobileOpen) return
 
-    const closeOnEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setMobileOpen(false)
+    const handleMenuKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setMobileOpen(false)
+        toggleRef.current?.focus()
+        return
+      }
+
+      if (event.key === 'Tab') {
+        const focusable = [
+          toggleRef.current,
+          ...Array.from(
+            navRef.current?.querySelectorAll<HTMLAnchorElement>('a') ?? [],
+          ),
+        ].filter(
+          (element): element is HTMLButtonElement | HTMLAnchorElement =>
+            element !== null,
+        )
+        const first = focusable[0]
+        const last = focusable.at(-1)
+
+        if (event.shiftKey && document.activeElement === first) {
+          event.preventDefault()
+          last?.focus()
+        } else if (!event.shiftKey && document.activeElement === last) {
+          event.preventDefault()
+          first?.focus()
+        }
+      }
     }
 
-    window.addEventListener('keydown', closeOnEscape)
-    return () => window.removeEventListener('keydown', closeOnEscape)
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    window.addEventListener('keydown', handleMenuKeyDown)
+    navRef.current?.querySelector<HTMLAnchorElement>('a')?.focus()
+    return () => {
+      document.body.style.overflow = previousOverflow
+      window.removeEventListener('keydown', handleMenuKeyDown)
+    }
   }, [mobileOpen])
 
   return (
@@ -84,6 +118,7 @@ export function AppSidebar({ active }: { active?: AppPage }) {
         </div>
       </Link>
       <button
+        ref={toggleRef}
         className="mobile-menu-toggle"
         type="button"
         aria-expanded={mobileOpen}
@@ -118,6 +153,7 @@ export function AppSidebar({ active }: { active?: AppPage }) {
         </svg>
       </button>
       <nav
+        ref={navRef}
         id="mobile-navigation"
         className={mobileOpen ? 'mobile-open' : undefined}
         aria-label="Main navigation"
@@ -127,6 +163,7 @@ export function AppSidebar({ active }: { active?: AppPage }) {
             className={item.icon === active ? 'active' : undefined}
             href={item.href}
             key={item.icon}
+            aria-current={item.icon === active ? 'page' : undefined}
             onClick={() => setMobileOpen(false)}
           >
             <NavIcon name={item.icon} />
