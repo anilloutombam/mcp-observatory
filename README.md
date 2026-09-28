@@ -88,7 +88,14 @@ cp .env.example .env.local
 NEXT_PUBLIC_SANITY_PROJECT_ID="your-project-id"
 NEXT_PUBLIC_SANITY_DATASET="production"
 NEXT_PUBLIC_SANITY_API_VERSION="2026-09-26"
+NEXT_PUBLIC_SENTRY_DSN=""
 ```
+
+Sentry monitoring is optional. When enabled, the Observatory uses a 5% trace
+sample rate, disables session replay and default personal data collection, and
+removes request bodies, headers, cookies, user data, and URL query strings from
+events. Set `SENTRY_ORG`, `SENTRY_PROJECT`, and `SENTRY_AUTH_TOKEN` in Vercel only
+if you want production source-map uploads.
 
 Start the application:
 
