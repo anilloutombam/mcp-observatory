@@ -4,6 +4,23 @@ import { useEffect, useState } from 'react'
 
 type SearchValue = string | number | undefined
 
+export function buildShareablePath(
+  currentUrl: string,
+  values: Record<string, SearchValue>,
+) {
+  const url = new URL(currentUrl)
+
+  Object.entries(values).forEach(([key, value]) => {
+    if (value === undefined || value === '') {
+      url.searchParams.delete(key)
+    } else {
+      url.searchParams.set(key, String(value))
+    }
+  })
+
+  return `${url.pathname}${url.search}${url.hash}`
+}
+
 export function useShareableUrl(values: Record<string, SearchValue>) {
   const serialized = JSON.stringify(values, (_key, value) =>
     value === undefined ? null : value,
@@ -14,17 +31,15 @@ export function useShareableUrl(values: Record<string, SearchValue>) {
       string,
       SearchValue | null
     >
-    const url = new URL(window.location.href)
-
-    Object.entries(nextValues).forEach(([key, value]) => {
-      if (value === null || value === '') {
-        url.searchParams.delete(key)
-      } else {
-        url.searchParams.set(key, String(value))
-      }
-    })
-
-    const next = `${url.pathname}${url.search}${url.hash}`
+    const next = buildShareablePath(
+      window.location.href,
+      Object.fromEntries(
+        Object.entries(nextValues).map(([key, value]) => [
+          key,
+          value === null ? undefined : value,
+        ]),
+      ),
+    )
     const current = `${window.location.pathname}${window.location.search}${window.location.hash}`
 
     if (next !== current) {

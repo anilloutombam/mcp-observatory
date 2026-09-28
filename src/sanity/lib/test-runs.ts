@@ -25,7 +25,7 @@ export type TestRunsData = {
   scenarios: Array<{ _id: string; name: string; slug: string }>
 }
 
-const testRunsQuery = defineQuery(/* groq */ `{
+export const testRunsQuery = defineQuery(/* groq */ `{
   "runs": *[_type == "testRun"] | order(_createdAt desc) {
     _id, _createdAt,
     "implementation": implementation->{_id, name, "slug": slug.current},

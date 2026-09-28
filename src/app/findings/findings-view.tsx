@@ -14,6 +14,7 @@ import {
   reportingLabels,
 } from '../finding-reporting-badge'
 import { ImplementationIcon } from '../implementation-icon'
+import { paginate, parsePage } from '../pagination'
 import { CopyPageLinkButton, useShareableUrl } from '../shareable-url'
 import { SummaryCard } from '../summary-card'
 import { SiteFooter } from '../site-footer'
@@ -33,11 +34,6 @@ export type FindingUrlFilters = {
   category?: string
   implementation?: string
   page?: string
-}
-
-function initialPage(value?: string) {
-  const page = Number.parseInt(value ?? '', 10)
-  return Number.isSafeInteger(page) && page > 0 ? page : 1
 }
 
 function SearchIcon() {
@@ -155,7 +151,6 @@ export function FindingsView({
   data: FindingsData
   initialFilters: FindingUrlFilters
 }) {
-
   const repositories = useMemo(
     () =>
       [
@@ -200,7 +195,7 @@ export function FindingsView({
       ? (initialFilters.implementation ?? '')
       : '',
   )
-  const [page, setPage] = useState(initialPage(initialFilters.page))
+  const [page, setPage] = useState(parsePage(initialFilters.page))
   const filtered = useMemo(() => {
     const term = search.trim().toLowerCase()
     return data.findings.filter((finding) => {
@@ -229,9 +224,7 @@ export function FindingsView({
     reviewStatus,
     search,
   ])
-  const pages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
-  const current = Math.min(page, pages)
-  const visible = filtered.slice((current - 1) * PAGE_SIZE, current * PAGE_SIZE)
+  const { current, pages, items: visible } = paginate(filtered, page, PAGE_SIZE)
 
   useShareableUrl({
     q: search.trim() || undefined,
@@ -379,7 +372,7 @@ export function FindingsView({
           >
             <option value="">All implementations</option>
             {data.implementations.map((item) => (
-                <option key={item._id} value={item.slug}>
+              <option key={item._id} value={item.slug}>
                 {item.name}
               </option>
             ))}

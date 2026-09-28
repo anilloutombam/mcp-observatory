@@ -45,7 +45,7 @@ export type FindingsData = {
   implementations: Array<{ _id: string; name: string; slug: string }>
 }
 
-const findingsQuery = defineQuery(/* groq */ `{
+export const findingsQuery = defineQuery(/* groq */ `{
   "findings": *[_type == "finding"] | order(reportedAt desc, _createdAt desc) {
     _id, _createdAt, statement, category, confidence, status, proposedBy,
     affectedVersions, reportingStatus, upstreamRepository, upstreamIssueUrl,

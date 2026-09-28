@@ -5,6 +5,7 @@ import { useMemo, useState, type ChangeEvent } from 'react'
 
 import type { TestRunsData } from '@/sanity/lib/test-runs'
 import { AppPageShell } from '../app-page-shell'
+import { paginate, parsePage } from '../pagination'
 import { CopyPageLinkButton, useShareableUrl } from '../shareable-url'
 import { statusLabels } from '../status-badge'
 import { SummaryCard } from '../summary-card'
@@ -23,11 +24,6 @@ export type TestRunUrlFilters = {
   transport?: string
   sort?: string
   page?: string
-}
-
-function initialPage(value?: string) {
-  const page = Number.parseInt(value ?? '', 10)
-  return Number.isSafeInteger(page) && page > 0 ? page : 1
 }
 
 function SearchIcon() {
@@ -83,7 +79,7 @@ export function TestRunsView({
       ? initialFilters.sort
       : 'newest',
   )
-  const [page, setPage] = useState(initialPage(initialFilters.page))
+  const [page, setPage] = useState(parsePage(initialFilters.page))
 
   const filtered = useMemo(() => {
     const term = search.trim().toLowerCase()
@@ -109,9 +105,7 @@ export function TestRunsView({
     )
   }, [data.runs, implementation, scenario, search, sort, status, transport])
 
-  const pages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
-  const current = Math.min(page, pages)
-  const rows = filtered.slice((current - 1) * PAGE_SIZE, current * PAGE_SIZE)
+  const { current, pages, items: rows } = paginate(filtered, page, PAGE_SIZE)
 
   useShareableUrl({
     q: search.trim() || undefined,
