@@ -226,13 +226,26 @@ export function Dashboard({ data }: { data: DashboardData }) {
                 badge={`${scenarios.length} scenarios`}
               />
               {implementations.length && scenarios.length ? (
-                <div className="table-scroll">
+                <div
+                  className="table-scroll"
+                  role="region"
+                  aria-label="Compatibility matrix"
+                  tabIndex={0}
+                >
                   <table className="matrix-table">
+                    <caption className="sr-only">
+                      Latest compatibility result for each implementation and
+                      scenario
+                    </caption>
                     <thead>
                       <tr>
-                        <th>Implementation</th>
+                        <th scope="col">Implementation</th>
                         {scenarios.map((scenario) => (
-                          <th key={scenario._id} title={scenario.name}>
+                          <th
+                            key={scenario._id}
+                            scope="col"
+                            title={scenario.name}
+                          >
                             {scenario.name}
                           </th>
                         ))}

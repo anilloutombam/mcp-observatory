@@ -346,13 +346,23 @@ export function ComparisonsView({
               <span>{scenarios.length}</span>
             </div>
             {scenarios.length ? (
-              <div className="comparison-table-wrap">
+              <div
+                className="comparison-table-wrap"
+                role="region"
+                aria-label="Scenario comparison table"
+                tabIndex={0}
+              >
                 <table className="comparison-table">
+                  <caption className="sr-only">
+                    Scenario results for the selected implementations
+                  </caption>
                   <thead>
                     <tr>
-                      <th>Scenario</th>
+                      <th scope="col">Scenario</th>
                       {selected.map((implementation) => (
-                        <th key={implementation._id}>{implementation.name}</th>
+                        <th key={implementation._id} scope="col">
+                          {implementation.name}
+                        </th>
                       ))}
                     </tr>
                   </thead>
@@ -376,7 +386,10 @@ export function ComparisonsView({
                             ),
                           )
                           return (
-                            <td key={implementation._id}>
+                            <td
+                              key={implementation._id}
+                              data-label={implementation.name}
+                            >
                               {results.length ? (
                                 results.map((run) => (
                                   <ComparisonResult key={run._id} run={run} />

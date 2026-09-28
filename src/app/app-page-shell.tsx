@@ -19,8 +19,13 @@ export function AppShell({
 }) {
   return (
     <div className={classes('app-shell', className)}>
+      <a className="skip-link" href="#main-content">
+        Skip to main content
+      </a>
       <AppSidebar active={active} />
-      <main className={workspaceClassName}>{children}</main>
+      <main id="main-content" className={workspaceClassName} tabIndex={-1}>
+        {children}
+      </main>
     </div>
   )
 }

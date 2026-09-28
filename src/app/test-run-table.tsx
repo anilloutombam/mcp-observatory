@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 
 import type { RunStatus } from '@/sanity/lib/dashboard'
@@ -47,17 +48,25 @@ export function TestRunTable({
     router.push(`/test-runs/${encodeURIComponent(id)}`)
 
   return (
-    <div className="runs-table-wrap">
+    <div
+      className="runs-table-wrap"
+      role="region"
+      aria-label="Test runs table"
+      tabIndex={0}
+    >
       <table className="runs-table">
+        <caption className="sr-only">
+          Recorded MCP compatibility test runs
+        </caption>
         <thead>
           <tr>
-            {showImplementation && <th>Implementation</th>}
-            <th>Scenario</th>
-            {!showImplementation && <th>Version</th>}
-            <th>Transport</th>
-            <th>Status</th>
-            <th>{dateLabel}</th>
-            <th>Context</th>
+            {showImplementation && <th scope="col">Implementation</th>}
+            <th scope="col">Scenario</th>
+            {!showImplementation && <th scope="col">Version</th>}
+            <th scope="col">Transport</th>
+            <th scope="col">Status</th>
+            <th scope="col">{dateLabel}</th>
+            <th scope="col">Context</th>
           </tr>
         </thead>
         <tbody>
@@ -65,19 +74,10 @@ export function TestRunTable({
             <tr
               className="runs-table-row-link"
               key={run._id}
-              role="link"
-              tabIndex={0}
-              aria-label={`View ${run.implementation?.name ?? ''} test run for ${run.scenario?.name ?? 'unknown scenario'}`.trim()}
               onClick={() => openRun(run._id)}
-              onKeyDown={(event) => {
-                if (event.key === 'Enter' || event.key === ' ') {
-                  event.preventDefault()
-                  openRun(run._id)
-                }
-              }}
             >
               {showImplementation && (
-                <td>
+                <td data-label="Implementation">
                   <div className="run-implementation">
                     <ImplementationIcon
                       name={run.implementation?.name ?? 'Unknown'}
@@ -106,25 +106,31 @@ export function TestRunTable({
                   </div>
                 </td>
               )}
-              <td>
-                <strong>{run.scenario?.name ?? 'Unknown scenario'}</strong>
+              <td data-label="Scenario">
+                <Link
+                  className="run-scenario-link"
+                  href={`/test-runs/${encodeURIComponent(run._id)}`}
+                  onClick={(event) => event.stopPropagation()}
+                >
+                  {run.scenario?.name ?? 'Unknown scenario'}
+                </Link>
                 <small>{run.scenario?.category ?? 'uncategorized'}</small>
               </td>
               {!showImplementation && (
-                <td>
+                <td data-label="Version">
                   <strong>v{run.version}</strong>
                 </td>
               )}
-              <td>
+              <td data-label="Transport">
                 <TransportBadge transport={run.transport} />
               </td>
-              <td>
+              <td data-label="Status">
                 <StatusBadge status={run.status} />
               </td>
-              <td>
+              <td data-label={dateLabel}>
                 <time dateTime={recordedAt(run)}>{displayDate(run)}</time>
               </td>
-              <td>
+              <td data-label="Context">
                 <span className="context-count">
                   {run.evidenceCount} evidence
                 </span>

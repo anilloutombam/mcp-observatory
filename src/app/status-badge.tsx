@@ -60,7 +60,10 @@ export function StatusIcon({ status }: { status: RunStatus }) {
 
 export function StatusBadge({ status }: { status: RunStatus }) {
   return (
-    <span className={`status status-${status}`}>
+    <span
+      className={`status status-${status}`}
+      aria-label={`Status: ${statusLabels[status]}`}
+    >
       <StatusIcon status={status} />
       {statusLabels[status]}
     </span>

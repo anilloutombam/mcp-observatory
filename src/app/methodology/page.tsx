@@ -178,10 +178,6 @@ export default function MethodologyPage() {
             The dataset is selective and does not cover every MCP feature,
             implementation, or deployment environment.
           </li>
-          <li>
-            Jev decision experiments are kept separate because they are not MCP
-            implementation Test Runs.
-          </li>
         </ul>
       </section>
 
