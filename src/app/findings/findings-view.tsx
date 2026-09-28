@@ -13,6 +13,7 @@ import {
   FindingReportingBadge,
   reportingLabels,
 } from '../finding-reporting-badge'
+import { ExternalLink } from '../external-link'
 import { ImplementationIcon } from '../implementation-icon'
 import { paginate, parsePage } from '../pagination'
 import { CopyPageLinkButton, useShareableUrl } from '../shareable-url'
@@ -59,14 +60,6 @@ function ReviewBadge({ status }: { status: FindingReviewStatus }) {
     <span className={`review-state review-${status}`}>
       {reviewLabels[status]}
     </span>
-  )
-}
-
-function ExternalLink({ href, children }: { href: string; children: string }) {
-  return (
-    <a href={href} target="_blank" rel="noreferrer">
-      {children} ↗
-    </a>
   )
 }
 

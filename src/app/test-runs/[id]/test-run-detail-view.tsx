@@ -4,6 +4,7 @@ import type {
   TestRunDetail,
   TestRunFinding,
 } from '@/sanity/lib/test-run-detail'
+import { ExternalLink } from '../../external-link'
 import { FindingReportingBadge } from '../../finding-reporting-badge'
 import { ImplementationIcon } from '../../implementation-icon'
 import { StatusBadge } from '../../status-badge'
@@ -22,14 +23,6 @@ function formatDuration(durationMs?: number) {
   if (durationMs === undefined) return null
   if (durationMs < 1000) return `${durationMs} ms`
   return `${(durationMs / 1000).toFixed(durationMs < 10000 ? 1 : 0)} s`
-}
-
-function ExternalLink({ href, children }: { href: string; children: string }) {
-  return (
-    <a href={href} target="_blank" rel="noreferrer">
-      {children} ↗
-    </a>
-  )
 }
 
 function FindingCard({ finding }: { finding: TestRunFinding }) {
