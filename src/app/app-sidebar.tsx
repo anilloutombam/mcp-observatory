@@ -180,10 +180,6 @@ export function AppSidebar({ active }: { active?: AppPage }) {
         />
       )}
       <div className="sidebar-footer">
-        <span>
-          <i />
-          Live data
-        </span>
         <span>◈ Powered by Sanity</span>
       </div>
     </aside>

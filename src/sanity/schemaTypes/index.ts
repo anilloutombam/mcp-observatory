@@ -4,6 +4,7 @@ import { scenarioType } from './scenario'
 import { testRunType } from './testRun'
 import { evidenceType } from './evidence'
 import { findingType } from './findings'
+import { dataSyncType } from './dataSync'
 
 export const schema: { types: SchemaTypeDefinition[] } = {
   types: [
@@ -12,5 +13,6 @@ export const schema: { types: SchemaTypeDefinition[] } = {
     testRunType,
     evidenceType,
     findingType,
+    dataSyncType,
   ],
 }
