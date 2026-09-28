@@ -3,6 +3,7 @@ import type {
   ImplementationRun,
 } from '@/sanity/lib/implementation-detail'
 import type { RunStatus } from '@/sanity/lib/dashboard'
+import { ExternalLink } from '../../external-link'
 import { ImplementationIcon } from '../../implementation-icon'
 import { TestRunTable } from '../../test-run-table'
 
@@ -99,13 +100,9 @@ export function ImplementationDetailView({
             <small>{implementation.kind}</small>
             <h2>{implementation.name}</h2>
             {implementation.repositoryUrl && (
-              <a
-                href={implementation.repositoryUrl}
-                target="_blank"
-                rel="noreferrer"
-              >
-                View repository ↗
-              </a>
+              <ExternalLink href={implementation.repositoryUrl}>
+                <span>View repository</span>
+              </ExternalLink>
             )}
           </div>
         </div>

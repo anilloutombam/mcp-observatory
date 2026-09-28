@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { ExternalLinkIcon } from './external-link-icon'
+import { ExternalLink } from './external-link'
 
 export function SiteFooter() {
   return (
@@ -7,22 +7,12 @@ export function SiteFooter() {
       <p>MCP compatibility data, with evidence and limitations in context.</p>
       <nav aria-label="Project information">
         <Link href="/methodology">Methodology &amp; limitations</Link>
-        <a
-          href="https://github.com/anilloutombam/mcp-observatory"
-          target="_blank"
-          rel="noreferrer"
-        >
+        <ExternalLink href="https://github.com/anilloutombam/mcp-observatory">
           <span>Source code</span>
-          <ExternalLinkIcon />
-        </a>
-        <a
-          href="https://github.com/anilloutombam/mcp-failure-lab"
-          target="_blank"
-          rel="noreferrer"
-        >
+        </ExternalLink>
+        <ExternalLink href="https://github.com/anilloutombam/mcp-failure-lab">
           <span>MCP Failure Lab</span>
-          <ExternalLinkIcon />
-        </a>
+        </ExternalLink>
       </nav>
     </footer>
   )

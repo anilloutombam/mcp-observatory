@@ -3,7 +3,7 @@ import Link from 'next/link'
 
 import type { RunStatus } from '@/sanity/lib/dashboard'
 import { AppPageShell } from '../app-page-shell'
-import { ExternalLinkIcon } from '../external-link-icon'
+import { ExternalLink } from '../external-link'
 import { FindingReportingBadge } from '../finding-reporting-badge'
 import { SiteFooter } from '../site-footer'
 import { StatusBadge } from '../status-badge'
@@ -186,32 +186,24 @@ export default function MethodologyPage() {
       </section>
 
       <section className="methodology-links">
-        <a
+        <ExternalLink
           href="https://github.com/anilloutombam/mcp-failure-lab/tree/main/docs/compatibility"
-          target="_blank"
-          rel="noreferrer"
+          iconWrapperClassName="methodology-link-icon"
         >
           <span>
             <small>Evidence archive</small>
             <strong>Read the source reports</strong>
           </span>
-          <span className="methodology-link-icon">
-            <ExternalLinkIcon />
-          </span>
-        </a>
-        <a
+        </ExternalLink>
+        <ExternalLink
           href="https://github.com/anilloutombam/mcp-observatory"
-          target="_blank"
-          rel="noreferrer"
+          iconWrapperClassName="methodology-link-icon"
         >
           <span>
             <small>Open source</small>
             <strong>Review the Observatory source</strong>
           </span>
-          <span className="methodology-link-icon">
-            <ExternalLinkIcon />
-          </span>
-        </a>
+        </ExternalLink>
       </section>
 
       <SiteFooter />
