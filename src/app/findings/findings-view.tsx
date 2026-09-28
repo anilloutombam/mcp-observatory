@@ -14,6 +14,7 @@ import {
   reportingLabels,
 } from '../finding-reporting-badge'
 import { ImplementationIcon } from '../implementation-icon'
+import { CopyPageLinkButton, useShareableUrl } from '../shareable-url'
 import { SummaryCard } from '../summary-card'
 import { SiteFooter } from '../site-footer'
 
@@ -22,6 +23,21 @@ const reviewLabels: Record<FindingReviewStatus, string> = {
   'needs-review': 'Needs review',
   verified: 'Verified',
   rejected: 'Rejected',
+}
+
+export type FindingUrlFilters = {
+  q?: string
+  review?: string
+  reporting?: string
+  repository?: string
+  category?: string
+  implementation?: string
+  page?: string
+}
+
+function initialPage(value?: string) {
+  const page = Number.parseInt(value ?? '', 10)
+  return Number.isSafeInteger(page) && page > 0 ? page : 1
 }
 
 function SearchIcon() {
@@ -132,14 +148,13 @@ function FindingCard({ finding }: { finding: FindingListItem }) {
   )
 }
 
-export function FindingsView({ data }: { data: FindingsData }) {
-  const [search, setSearch] = useState('')
-  const [reviewStatus, setReviewStatus] = useState('')
-  const [reportingStatus, setReportingStatus] = useState('')
-  const [repository, setRepository] = useState('')
-  const [category, setCategory] = useState('')
-  const [implementation, setImplementation] = useState('')
-  const [page, setPage] = useState(1)
+export function FindingsView({
+  data,
+  initialFilters,
+}: {
+  data: FindingsData
+  initialFilters: FindingUrlFilters
+}) {
 
   const repositories = useMemo(
     () =>
@@ -156,12 +171,42 @@ export function FindingsView({ data }: { data: FindingsData }) {
     () => [...new Set(data.findings.map((item) => item.category))].sort(),
     [data.findings],
   )
+  const [search, setSearch] = useState(initialFilters.q ?? '')
+  const [reviewStatus, setReviewStatus] = useState(
+    initialFilters.review && initialFilters.review in reviewLabels
+      ? initialFilters.review
+      : '',
+  )
+  const [reportingStatus, setReportingStatus] = useState(
+    initialFilters.reporting && initialFilters.reporting in reportingLabels
+      ? initialFilters.reporting
+      : '',
+  )
+  const [repository, setRepository] = useState(
+    initialFilters.repository &&
+      repositories.includes(initialFilters.repository)
+      ? initialFilters.repository
+      : '',
+  )
+  const [category, setCategory] = useState(
+    initialFilters.category && categories.includes(initialFilters.category)
+      ? initialFilters.category
+      : '',
+  )
+  const [implementation, setImplementation] = useState(
+    data.implementations.some(
+      (item) => item.slug === initialFilters.implementation,
+    )
+      ? (initialFilters.implementation ?? '')
+      : '',
+  )
+  const [page, setPage] = useState(initialPage(initialFilters.page))
   const filtered = useMemo(() => {
     const term = search.trim().toLowerCase()
     return data.findings.filter((finding) => {
       const implementationIds = [
-        finding.testRun?.implementation?._id,
-        ...finding.affectedImplementations.map((item) => item._id),
+        finding.testRun?.implementation?.slug,
+        ...finding.affectedImplementations.map((item) => item.slug),
       ]
       return (
         (!term ||
@@ -187,6 +232,17 @@ export function FindingsView({ data }: { data: FindingsData }) {
   const pages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
   const current = Math.min(page, pages)
   const visible = filtered.slice((current - 1) * PAGE_SIZE, current * PAGE_SIZE)
+
+  useShareableUrl({
+    q: search.trim() || undefined,
+    review: reviewStatus || undefined,
+    reporting: reportingStatus || undefined,
+    repository: repository || undefined,
+    category: category || undefined,
+    implementation: implementation || undefined,
+    page: current > 1 ? current : undefined,
+  })
+
   const update =
     (setter: (value: string) => void) =>
     (event: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -323,7 +379,7 @@ export function FindingsView({ data }: { data: FindingsData }) {
           >
             <option value="">All implementations</option>
             {data.implementations.map((item) => (
-              <option key={item._id} value={item._id}>
+                <option key={item._id} value={item.slug}>
                 {item.name}
               </option>
             ))}
@@ -333,16 +389,19 @@ export function FindingsView({ data }: { data: FindingsData }) {
           <span>
             <strong>{filtered.length}</strong> results
           </span>
-          {(search ||
-            reviewStatus ||
-            reportingStatus ||
-            repository ||
-            category ||
-            implementation) && (
-            <button type="button" onClick={clear}>
-              Clear filters
-            </button>
-          )}
+          <div className="runs-results-actions">
+            {(search ||
+              reviewStatus ||
+              reportingStatus ||
+              repository ||
+              category ||
+              implementation) && (
+              <button type="button" onClick={clear}>
+                Clear filters
+              </button>
+            )}
+            <CopyPageLinkButton />
+          </div>
         </div>
 
         {visible.length ? (

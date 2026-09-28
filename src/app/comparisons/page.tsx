@@ -1,7 +1,8 @@
 import type { Metadata } from 'next'
 
 import { getComparisonsData } from '@/sanity/lib/comparisons'
-import { ComparisonsView } from './comparisons-view'
+import { searchParam, type PageSearchParams } from '../search-params'
+import { ComparisonsView, type ComparisonUrlFilters } from './comparisons-view'
 
 export const metadata: Metadata = {
   title: 'Comparisons',
@@ -16,7 +17,17 @@ export const metadata: Metadata = {
   },
 }
 
-export default async function ComparisonsPage() {
+export default async function ComparisonsPage({
+  searchParams,
+}: {
+  searchParams: PageSearchParams
+}) {
+  const params = await searchParams
+  const initialFilters: ComparisonUrlFilters = {
+    compare: searchParam(params, 'compare'),
+    scenario: searchParam(params, 'scenario'),
+    transport: searchParam(params, 'transport'),
+  }
   const data = await getComparisonsData()
-  return <ComparisonsView data={data} />
+  return <ComparisonsView data={data} initialFilters={initialFilters} />
 }

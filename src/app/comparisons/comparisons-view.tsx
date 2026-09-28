@@ -11,11 +11,19 @@ import type {
 import type { RunStatus } from '@/sanity/lib/dashboard'
 import { AppPageShell } from '../app-page-shell'
 import { ImplementationIcon } from '../implementation-icon'
+import { CopyPageLinkButton, useShareableUrl } from '../shareable-url'
 import { StatusBadge, statusLabels } from '../status-badge'
 import { TransportBadge } from '../transport-badge'
 import { SiteFooter } from '../site-footer'
 
 const MAX_SELECTIONS = 4
+const validTransports = new Set(['stdio', 'streamable-http'])
+
+export type ComparisonUrlFilters = {
+  compare?: string
+  scenario?: string
+  transport?: string
+}
 
 function versionsFor(implementation: ComparisonImplementation) {
   return [...new Set(implementation.runs.map((run) => run.version))]
@@ -51,26 +59,76 @@ function ComparisonResult({ run }: { run: ComparisonRun }) {
   )
 }
 
-export function ComparisonsView({ data }: { data: ComparisonsData }) {
+export function ComparisonsView({
+  data,
+  initialFilters,
+}: {
+  data: ComparisonsData
+  initialFilters: ComparisonUrlFilters
+}) {
   const defaults = data.implementations
     .filter((item) => item.runs.length)
     .slice(0, 2)
-  const [selectedIds, setSelectedIds] = useState<string[]>(
-    defaults.map((item) => item._id),
+  const requestedComparisons =
+    initialFilters.compare === 'none'
+      ? []
+      : (initialFilters.compare ?? '')
+          .split(',')
+          .filter(Boolean)
+          .map((entry) => {
+            const separator = entry.indexOf('@')
+            return separator === -1
+              ? { slug: entry, version: undefined }
+              : {
+                  slug: entry.slice(0, separator),
+                  version: entry.slice(separator + 1),
+                }
+          })
+  const requestedSlugs = requestedComparisons
+    .map((item) => item.slug)
+    .filter((slug) => data.implementations.some((item) => item.slug === slug))
+    .slice(0, MAX_SELECTIONS)
+  const [selectedSlugs, setSelectedSlugs] = useState<string[]>(
+    initialFilters.compare === undefined ||
+      (initialFilters.compare !== 'none' && requestedSlugs.length === 0)
+      ? defaults.map((item) => item.slug)
+      : requestedSlugs,
   )
   const [selectedVersions, setSelectedVersions] = useState<
     Record<string, string>
   >(
     Object.fromEntries(
-      defaults.map((item) => [item._id, versionsFor(item)[0] ?? '']),
+      data.implementations.map((implementation) => {
+        const requested = requestedComparisons.find(
+          (item) => item.slug === implementation.slug,
+        )?.version
+        const versions = versionsFor(implementation)
+        return [
+          implementation.slug,
+          requested && versions.includes(requested)
+            ? requested
+            : (versions[0] ?? ''),
+        ]
+      }),
     ),
   )
-  const [scenarioId, setScenarioId] = useState('')
-  const [transport, setTransport] = useState('')
+  const [scenarioSlug, setScenarioSlug] = useState(
+    data.scenarios.some((item) => item.slug === initialFilters.scenario)
+      ? (initialFilters.scenario ?? '')
+      : '',
+  )
+  const [transport, setTransport] = useState(
+    initialFilters.transport && validTransports.has(initialFilters.transport)
+      ? initialFilters.transport
+      : '',
+  )
 
   const selected = useMemo(
-    () => data.implementations.filter((item) => selectedIds.includes(item._id)),
-    [data.implementations, selectedIds],
+    () =>
+      data.implementations.filter((item) =>
+        selectedSlugs.includes(item.slug),
+      ),
+    [data.implementations, selectedSlugs],
   )
   const selectedRuns = useMemo(
     () =>
@@ -79,7 +137,7 @@ export function ComparisonsView({ data }: { data: ComparisonsData }) {
           item.runs.filter(
             (run) =>
               run.version ===
-                (selectedVersions[item._id] ?? versionsFor(item)[0]) &&
+                (selectedVersions[item.slug] ?? versionsFor(item)[0]) &&
               matchesTransport(run, transport),
           ),
         ),
@@ -90,24 +148,37 @@ export function ComparisonsView({ data }: { data: ComparisonsData }) {
     () =>
       data.scenarios.filter(
         (scenario) =>
-          (!scenarioId || scenario._id === scenarioId) &&
+          (!scenarioSlug || scenario.slug === scenarioSlug) &&
           selectedRuns.some((run) => run.scenario?._id === scenario._id),
       ),
-    [data.scenarios, scenarioId, selectedRuns],
+    [data.scenarios, scenarioSlug, selectedRuns],
   )
 
+  const comparisonValue = selected
+    .map((implementation) => {
+      const version =
+        selectedVersions[implementation.slug] ?? versionsFor(implementation)[0]
+      return `${implementation.slug}@${version}`
+    })
+    .join(',')
+  useShareableUrl({
+    compare: comparisonValue || 'none',
+    scenario: scenarioSlug || undefined,
+    transport: transport || undefined,
+  })
+
   const toggleImplementation = (implementation: ComparisonImplementation) => {
-    setSelectedIds((current) => {
-      if (current.includes(implementation._id)) {
-        return current.filter((id) => id !== implementation._id)
+    setSelectedSlugs((current) => {
+      if (current.includes(implementation.slug)) {
+        return current.filter((slug) => slug !== implementation.slug)
       }
       if (current.length >= MAX_SELECTIONS) return current
-      return [...current, implementation._id]
+      return [...current, implementation.slug]
     })
     setSelectedVersions((current) => ({
       ...current,
-      [implementation._id]:
-        current[implementation._id] ?? versionsFor(implementation)[0] ?? '',
+      [implementation.slug]:
+        current[implementation.slug] ?? versionsFor(implementation)[0] ?? '',
     }))
   }
 
@@ -133,14 +204,17 @@ export function ComparisonsView({ data }: { data: ComparisonsData }) {
               below.
             </p>
           </div>
-          <span>
-            {selected.length}/{MAX_SELECTIONS} selected
-          </span>
+          <div className="comparison-control-actions">
+            <span>
+              {selected.length}/{MAX_SELECTIONS} selected
+            </span>
+            <CopyPageLinkButton />
+          </div>
         </div>
         <div className="comparison-picker">
           {data.implementations.map((implementation) => {
-            const checked = selectedIds.includes(implementation._id)
-            const disabled = !checked && selectedIds.length >= MAX_SELECTIONS
+            const checked = selectedSlugs.includes(implementation.slug)
+            const disabled = !checked && selectedSlugs.length >= MAX_SELECTIONS
             return (
               <label
                 className={`comparison-choice${checked ? ' selected' : ''}${disabled ? ' disabled' : ''}`}
@@ -175,14 +249,14 @@ export function ComparisonsView({ data }: { data: ComparisonsData }) {
                   <span>{implementation.name}</span>
                   <select
                     value={
-                      selectedVersions[implementation._id] ??
+                      selectedVersions[implementation.slug] ??
                       versionsFor(implementation)[0] ??
                       ''
                     }
                     onChange={(event: ChangeEvent<HTMLSelectElement>) =>
                       setSelectedVersions((current) => ({
                         ...current,
-                        [implementation._id]: event.target.value,
+                        [implementation.slug]: event.target.value,
                       }))
                     }
                   >
@@ -197,13 +271,13 @@ export function ComparisonsView({ data }: { data: ComparisonsData }) {
             </div>
             <div className="comparison-filters">
               <select
-                value={scenarioId}
-                onChange={(event) => setScenarioId(event.target.value)}
+                value={scenarioSlug}
+                onChange={(event) => setScenarioSlug(event.target.value)}
                 aria-label="Filter by scenario"
               >
                 <option value="">All scenarios</option>
                 {data.scenarios.map((scenario) => (
-                  <option key={scenario._id} value={scenario._id}>
+                  <option key={scenario._id} value={scenario.slug}>
                     {scenario.name}
                   </option>
                 ))}
@@ -223,7 +297,7 @@ export function ComparisonsView({ data }: { data: ComparisonsData }) {
           <section className="comparison-summaries">
             {selected.map((implementation) => {
               const version =
-                selectedVersions[implementation._id] ??
+                selectedVersions[implementation.slug] ??
                 versionsFor(implementation)[0]
               const runs = latestResults(
                 implementation.runs.filter(
@@ -306,7 +380,7 @@ export function ComparisonsView({ data }: { data: ComparisonsData }) {
                         </th>
                         {selected.map((implementation) => {
                           const version =
-                            selectedVersions[implementation._id] ??
+                            selectedVersions[implementation.slug] ??
                             versionsFor(implementation)[0]
                           const results = latestResults(
                             implementation.runs.filter(
