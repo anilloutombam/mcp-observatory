@@ -42,7 +42,7 @@ export type FindingListItem = {
 
 export type FindingsData = {
   findings: FindingListItem[]
-  implementations: Array<{ _id: string; name: string }>
+  implementations: Array<{ _id: string; name: string; slug: string }>
 }
 
 const findingsQuery = defineQuery(/* groq */ `{
@@ -63,7 +63,7 @@ const findingsQuery = defineQuery(/* groq */ `{
     }
   },
   "implementations": *[_type == "implementation"] | order(name asc) {
-    _id, name
+    _id, name, "slug": slug.current
   }
 }`)
 

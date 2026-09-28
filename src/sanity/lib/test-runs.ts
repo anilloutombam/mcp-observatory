@@ -21,8 +21,8 @@ export type TestRunListItem = {
 
 export type TestRunsData = {
   runs: TestRunListItem[]
-  implementations: Array<{ _id: string; name: string }>
-  scenarios: Array<{ _id: string; name: string }>
+  implementations: Array<{ _id: string; name: string; slug: string }>
+  scenarios: Array<{ _id: string; name: string; slug: string }>
 }
 
 const testRunsQuery = defineQuery(/* groq */ `{
@@ -34,8 +34,12 @@ const testRunsQuery = defineQuery(/* groq */ `{
     "evidenceCount": count(*[_type == "evidence" && testRun._ref == ^._id]),
     "findingCount": count(*[_type == "finding" && testRun._ref == ^._id])
   },
-  "implementations": *[_type == "implementation"] | order(name asc) {_id, name},
-  "scenarios": *[_type == "scenario"] | order(name asc) {_id, name}
+  "implementations": *[_type == "implementation"] | order(name asc) {
+    _id, name, "slug": slug.current
+  },
+  "scenarios": *[_type == "scenario"] | order(name asc) {
+    _id, name, "slug": slug.current
+  }
 }`)
 
 export async function getTestRunsData() {

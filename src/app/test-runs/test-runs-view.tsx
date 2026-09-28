@@ -5,12 +5,30 @@ import { useMemo, useState, type ChangeEvent } from 'react'
 
 import type { TestRunsData } from '@/sanity/lib/test-runs'
 import { AppPageShell } from '../app-page-shell'
+import { CopyPageLinkButton, useShareableUrl } from '../shareable-url'
 import { statusLabels } from '../status-badge'
 import { SummaryCard } from '../summary-card'
 import { TestRunTable } from '../test-run-table'
 import { SiteFooter } from '../site-footer'
 
 const PAGE_SIZE = 15
+const validSorts = new Set(['newest', 'oldest', 'implementation'])
+const validTransports = new Set(['stdio', 'streamable-http'])
+
+export type TestRunUrlFilters = {
+  q?: string
+  implementation?: string
+  scenario?: string
+  status?: string
+  transport?: string
+  sort?: string
+  page?: string
+}
+
+function initialPage(value?: string) {
+  const page = Number.parseInt(value ?? '', 10)
+  return Number.isSafeInteger(page) && page > 0 ? page : 1
+}
 
 function SearchIcon() {
   return (
@@ -30,14 +48,42 @@ function SearchIcon() {
   )
 }
 
-export function TestRunsView({ data }: { data: TestRunsData }) {
-  const [search, setSearch] = useState('')
-  const [implementation, setImplementation] = useState('')
-  const [scenario, setScenario] = useState('')
-  const [status, setStatus] = useState('')
-  const [transport, setTransport] = useState('')
-  const [sort, setSort] = useState('newest')
-  const [page, setPage] = useState(1)
+export function TestRunsView({
+  data,
+  initialFilters,
+}: {
+  data: TestRunsData
+  initialFilters: TestRunUrlFilters
+}) {
+  const [search, setSearch] = useState(initialFilters.q ?? '')
+  const [implementation, setImplementation] = useState(
+    data.implementations.some(
+      (item) => item.slug === initialFilters.implementation,
+    )
+      ? (initialFilters.implementation ?? '')
+      : '',
+  )
+  const [scenario, setScenario] = useState(
+    data.scenarios.some((item) => item.slug === initialFilters.scenario)
+      ? (initialFilters.scenario ?? '')
+      : '',
+  )
+  const [status, setStatus] = useState(
+    initialFilters.status && initialFilters.status in statusLabels
+      ? initialFilters.status
+      : '',
+  )
+  const [transport, setTransport] = useState(
+    initialFilters.transport && validTransports.has(initialFilters.transport)
+      ? initialFilters.transport
+      : '',
+  )
+  const [sort, setSort] = useState(
+    initialFilters.sort && validSorts.has(initialFilters.sort)
+      ? initialFilters.sort
+      : 'newest',
+  )
+  const [page, setPage] = useState(initialPage(initialFilters.page))
 
   const filtered = useMemo(() => {
     const term = search.trim().toLowerCase()
@@ -47,8 +93,8 @@ export function TestRunsView({ data }: { data: TestRunsData }) {
           run.implementation?.name.toLowerCase().includes(term) ||
           run.scenario?.name.toLowerCase().includes(term) ||
           run.version.toLowerCase().includes(term)) &&
-        (!implementation || run.implementation?._id === implementation) &&
-        (!scenario || run.scenario?._id === scenario) &&
+        (!implementation || run.implementation?.slug === implementation) &&
+        (!scenario || run.scenario?.slug === scenario) &&
         (!status || run.status === status) &&
         (!transport || run.transport === transport),
     )
@@ -66,6 +112,17 @@ export function TestRunsView({ data }: { data: TestRunsData }) {
   const pages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
   const current = Math.min(page, pages)
   const rows = filtered.slice((current - 1) * PAGE_SIZE, current * PAGE_SIZE)
+
+  useShareableUrl({
+    q: search.trim() || undefined,
+    implementation: implementation || undefined,
+    scenario: scenario || undefined,
+    status: status || undefined,
+    transport: transport || undefined,
+    sort: sort === 'newest' ? undefined : sort,
+    page: current > 1 ? current : undefined,
+  })
+
   const update =
     (setter: (value: string) => void) =>
     (event: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -183,16 +240,19 @@ export function TestRunsView({ data }: { data: TestRunsData }) {
           <span>
             <strong>{filtered.length}</strong> results
           </span>
-          {(search ||
-            implementation ||
-            scenario ||
-            status ||
-            transport ||
-            sort !== 'newest') && (
-            <button type="button" onClick={clear}>
-              Clear filters
-            </button>
-          )}
+          <div className="runs-results-actions">
+            {(search ||
+              implementation ||
+              scenario ||
+              status ||
+              transport ||
+              sort !== 'newest') && (
+              <button type="button" onClick={clear}>
+                Clear filters
+              </button>
+            )}
+            <CopyPageLinkButton />
+          </div>
         </div>
         {rows.length ? (
           <>
@@ -244,13 +304,13 @@ function Filter({
   onChange: (event: ChangeEvent<HTMLSelectElement>) => void
   label: string
   first: string
-  items: Array<{ _id: string; name: string }>
+  items: Array<{ _id: string; name: string; slug: string }>
 }) {
   return (
     <select value={value} onChange={onChange} aria-label={label}>
       <option value="">{first}</option>
       {items.map((item) => (
-        <option key={item._id} value={item._id}>
+        <option key={item._id} value={item.slug}>
           {item.name}
         </option>
       ))}
