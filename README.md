@@ -28,8 +28,8 @@ MCP Failure Lab
   produces public reports and evidence
             │
             ▼
-Import and backfill scripts
-  normalize reports into structured records
+Validated sync pipeline
+  normalizes reports into structured records
             │
             ▼
 Sanity
@@ -116,11 +116,33 @@ SANITY_API_WRITE_TOKEN="your-write-token"
 Available commands:
 
 ```bash
+npm run sync:failure-lab
+npm run sync:failure-lab -- --write
 npm run import:upstream-findings
 npm run import:lifecycle-compatibility
 npm run backfill:findings
 npm run backfill:implementation-repositories
 ```
+
+`sync:failure-lab` validates the normalized Failure Lab manifest without
+writing by default. Add `--write` only after the dry run succeeds. A custom
+manifest and source revision can be supplied with `--source=<path-or-https-url>`
+and `--revision=<commit-or-release>`.
+
+The automated workflow accepts `failure-lab-data-published` repository
+dispatches and can also run manually. Its daily fallback runs only when the
+`MCP_FAILURE_LAB_SYNC_URL` repository variable points to a published manifest.
+Configure these repository values:
+
+- Variable `SANITY_PROJECT_ID`
+- Variable `SANITY_DATASET`
+- Variable `MCP_FAILURE_LAB_SYNC_URL` for scheduled ingestion
+- Secret `SANITY_API_WRITE_TOKEN` with the minimum required dataset access
+
+Imported Test Runs and Evidence are refreshed from their stable `sourceKey`.
+Existing Findings are deliberately preserved so automation cannot overwrite
+human review, resolution, or upstream-reporting decisions. New Findings enter
+the `Needs Review` state.
 
 Use a token with only the permissions required for the target dataset. Never commit `.env.local` or a Sanity write token.
 
@@ -159,7 +181,7 @@ The deployment requires the public Sanity environment variables listed above. Th
 - Shareable filter, comparison, and pagination URLs
 - Automated UI, query, and importer tests
 - Privacy-friendly analytics and error monitoring
-- Automated imports from MCP Failure Lab
+- Failure Lab repository dispatch after every published compatibility report
 - Continued accessibility and responsive-layout review
 - A separate model and interface for Jev decision experiments
 - A secure backend workflow for running new tests

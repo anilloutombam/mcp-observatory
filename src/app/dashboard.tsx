@@ -124,9 +124,27 @@ function formatDate(run: DashboardRun) {
   }).format(new Date(run.startedAt ?? run._createdAt))
 }
 
+function formatSyncDate(value: string) {
+  return new Intl.DateTimeFormat('en', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  }).format(new Date(value))
+}
+
+function isSyncStale(value: string) {
+  const staleAfterMs = 48 * 60 * 60 * 1000
+  return Date.now() - new Date(value).getTime() > staleAfterMs
+}
+
 export function Dashboard({ data }: { data: DashboardData }) {
   const [query, setQuery] = useState('')
   const normalizedQuery = query.trim().toLowerCase()
+  const syncIsStale = data.latestSync
+    ? isSyncStale(data.latestSync.completedAt)
+    : false
   const scenarios = useMemo(() => {
     const map = new Map<string, { _id: string; name: string; slug: string }>()
     for (const item of data.implementations)
@@ -188,6 +206,28 @@ export function Dashboard({ data }: { data: DashboardData }) {
               )}
             </div>
           </section>
+          <div
+            className={`data-freshness ${
+              !data.latestSync
+                ? 'data-freshness-unknown'
+                : syncIsStale
+                  ? 'data-freshness-stale'
+                  : 'data-freshness-current'
+            }`}
+            role="status"
+          >
+            <span className="data-freshness-indicator" aria-hidden="true" />
+            <span>
+              {data.latestSync
+                ? `${syncIsStale ? 'Sync overdue · last synced' : 'Data synced'} ${formatSyncDate(data.latestSync.completedAt)}`
+                : 'Sync history will appear after the first automated import'}
+            </span>
+            {data.latestSync?.sourceRevision && (
+              <code title="MCP Failure Lab source revision">
+                {data.latestSync.sourceRevision.slice(0, 7)}
+              </code>
+            )}
+          </div>
           <section className="stats" aria-label="Dataset summary">
             <SummaryCard
               icon="layers"

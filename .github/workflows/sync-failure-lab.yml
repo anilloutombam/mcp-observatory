@@ -1,0 +1,99 @@
+name: Sync MCP Failure Lab data
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_url:
+        description: Optional HTTPS URL for a normalized sync manifest
+        required: false
+        type: string
+      source_revision:
+        description: Optional Failure Lab commit SHA or release
+        required: false
+        type: string
+  repository_dispatch:
+    types: [failure-lab-data-published]
+  schedule:
+    - cron: '17 3 * * *'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: failure-lab-data-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    env:
+      NEXT_PUBLIC_SANITY_PROJECT_ID: ${{ vars.SANITY_PROJECT_ID }}
+      NEXT_PUBLIC_SANITY_DATASET: ${{ vars.SANITY_DATASET }}
+      SANITY_API_WRITE_TOKEN: ${{ secrets.SANITY_API_WRITE_TOKEN }}
+      DISPATCH_SOURCE_URL: ${{ github.event.client_payload.source_url }}
+      DISPATCH_REVISION: ${{ github.event.client_payload.source_revision }}
+      INPUT_SOURCE_URL: ${{ inputs.source_url }}
+      INPUT_REVISION: ${{ inputs.source_revision }}
+      DEFAULT_SOURCE_URL: ${{ vars.MCP_FAILURE_LAB_SYNC_URL }}
+
+    steps:
+      - name: Check out Observatory
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Resolve source
+        id: source
+        shell: bash
+        run: |
+          source_url="${DISPATCH_SOURCE_URL:-${INPUT_SOURCE_URL:-$DEFAULT_SOURCE_URL}}"
+          revision="${DISPATCH_REVISION:-$INPUT_REVISION}"
+
+          if [[ "${{ github.event_name }}" == "schedule" && -z "$source_url" ]]; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "No MCP_FAILURE_LAB_SYNC_URL repository variable is configured."
+            exit 0
+          fi
+
+          echo "skip=false" >> "$GITHUB_OUTPUT"
+          echo "source_url=$source_url" >> "$GITHUB_OUTPUT"
+          echo "revision=$revision" >> "$GITHUB_OUTPUT"
+
+      - name: Validate source
+        if: steps.source.outputs.skip != 'true'
+        env:
+          SOURCE_URL: ${{ steps.source.outputs.source_url }}
+          SOURCE_REVISION: ${{ steps.source.outputs.revision }}
+        shell: bash
+        run: |
+          command=(npx tsx scripts/sync-failure-lab.ts)
+          if [[ -n "$SOURCE_URL" ]]; then
+            command+=("--source=$SOURCE_URL")
+          fi
+          if [[ -n "$SOURCE_REVISION" ]]; then
+            command+=("--revision=$SOURCE_REVISION")
+          fi
+          "${command[@]}"
+
+      - name: Write validated records to Sanity
+        if: steps.source.outputs.skip != 'true'
+        env:
+          SOURCE_URL: ${{ steps.source.outputs.source_url }}
+          SOURCE_REVISION: ${{ steps.source.outputs.revision }}
+        shell: bash
+        run: |
+          command=(npx tsx scripts/sync-failure-lab.ts --write)
+          if [[ -n "$SOURCE_URL" ]]; then
+            command+=("--source=$SOURCE_URL")
+          fi
+          if [[ -n "$SOURCE_REVISION" ]]; then
+            command+=("--revision=$SOURCE_REVISION")
+          fi
+          "${command[@]}"

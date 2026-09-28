@@ -38,6 +38,13 @@ export type DashboardData = {
   verifiedFindingCount: number
   implementations: DashboardImplementation[]
   recentRuns: DashboardRun[]
+  latestSync: {
+    completedAt: string
+    sourceRevision?: string
+    sourceUrl?: string
+    reportCount?: number
+    runCount?: number
+  } | null
 }
 
 const dashboardQuery = defineQuery(/* groq */ `{
@@ -46,6 +53,13 @@ const dashboardQuery = defineQuery(/* groq */ `{
   "scenarioCount": count(*[_type == "scenario"]),
   "findingCount": count(*[_type == "finding"]),
   "verifiedFindingCount": count(*[_type == "finding" && status == "verified"]),
+  "latestSync": *[
+    _type == "dataSync" &&
+    source == "mcp-failure-lab" &&
+    status == "succeeded"
+  ] | order(completedAt desc)[0] {
+    completedAt, sourceRevision, sourceUrl, reportCount, runCount
+  },
   "implementations": *[_type == "implementation"] | order(name asc) {
     _id, name, "slug": slug.current,
     "runs": *[_type == "testRun" && implementation._ref == ^._id] {
