@@ -6,7 +6,7 @@ export const findingType = defineType({
   type: 'document',
 
   groups: [
-    { name: 'finding', title: 'Finding', default: true },
+    { name: 'finding', title: 'Review', default: true },
     { name: 'impact', title: 'Affected implementations' },
     { name: 'upstream', title: 'Upstream reporting' },
   ],
@@ -93,6 +93,13 @@ export const findingType = defineType({
           to: [{ type: 'evidence' }],
         }),
       ],
+      validation: (rule) =>
+        rule.unique().custom((value, context) => {
+          const isVerified = context.document?.status === 'verified'
+          return isVerified && (!value || value.length === 0)
+            ? 'Verified findings require supporting evidence.'
+            : true
+        }),
     }),
 
     defineField({
@@ -158,7 +165,22 @@ export const findingType = defineType({
         ],
       },
       initialValue: 'not-reported',
-      validation: (rule) => rule.required(),
+      validation: (rule) => [
+        rule.required(),
+        rule
+          .custom((value, context) => {
+            const reviewStatus = context.document?.status
+            const hasUpstreamReport = [
+              'reported',
+              'already-reported',
+              'resolved',
+            ].includes(value ?? '')
+            return reviewStatus === 'rejected' && hasUpstreamReport
+              ? 'A rejected finding still points to an upstream report. Confirm this state is intentional.'
+              : true
+          })
+          .warning(),
+      ],
     }),
 
     defineField({
@@ -219,7 +241,21 @@ export const findingType = defineType({
         !['reported', 'already-reported', 'resolved'].includes(
           parent?.reportingStatus,
         ),
-      validation: (rule) => rule.integer().positive(),
+      validation: (rule) =>
+        rule
+          .integer()
+          .positive()
+          .custom((value, context) => {
+            const reportingStatus = context.document?.reportingStatus
+            const needsIssue = [
+              'reported',
+              'already-reported',
+              'resolved',
+            ].includes(reportingStatus as string)
+            return needsIssue && !value
+              ? 'Issue number is required for an upstream report.'
+              : true
+          }),
     }),
 
     defineField({
@@ -233,7 +269,13 @@ export const findingType = defineType({
         !['reported', 'already-reported', 'resolved'].includes(
           parent?.reportingStatus,
         ),
-      validation: (rule) => rule.uri({ scheme: ['http', 'https'] }),
+      validation: (rule) =>
+        rule.uri({ scheme: ['http', 'https'] }).custom((value, context) => {
+          return context.document?.reportingStatus === 'already-reported' &&
+            !value
+            ? 'A direct evidence-comment URL is required for this status.'
+            : true
+        }),
     }),
 
     defineField({
@@ -245,6 +287,18 @@ export const findingType = defineType({
         !['reported', 'already-reported', 'resolved'].includes(
           parent?.reportingStatus,
         ),
+      validation: (rule) =>
+        rule.custom((value, context) => {
+          const reportingStatus = context.document?.reportingStatus
+          const needsDate = [
+            'reported',
+            'already-reported',
+            'resolved',
+          ].includes(reportingStatus as string)
+          return needsDate && !value
+            ? 'Add the date when the issue was reported or evidence was contributed.'
+            : true
+        }),
     }),
 
     defineField({
@@ -293,12 +347,46 @@ export const findingType = defineType({
       status: 'status',
       reportingStatus: 'reportingStatus',
       implementation: 'testRun.implementation.name',
+      category: 'category',
+      repository: 'upstreamRepository',
+      issueNumber: 'upstreamIssueNumber',
     },
 
-    prepare({ statement, status, reportingStatus, implementation }) {
+    prepare({
+      statement,
+      status,
+      reportingStatus,
+      implementation,
+      category,
+      repository,
+      issueNumber,
+    }) {
+      const reviewLabels: Record<string, string> = {
+        'needs-review': 'Needs review',
+        verified: 'Verified',
+        rejected: 'Rejected',
+      }
+      const reportingLabels: Record<string, string> = {
+        'not-reported': 'Not reported',
+        reported: 'Reported by MCP Failure Lab',
+        'already-reported': 'Evidence added to existing issue',
+        resolved: 'Resolved upstream',
+        'not-actionable': 'Not actionable upstream',
+      }
+      const issue =
+        repository && issueNumber ? `${repository}#${issueNumber}` : repository
+
       return {
         title: statement ?? 'Untitled finding',
-        subtitle: `${implementation ?? 'Unknown implementation'} · ${status ?? 'unknown'} · ${reportingStatus ?? 'reporting status unset'}`,
+        subtitle: [
+          reviewLabels[status] ?? 'Review status unset',
+          implementation ?? 'Unknown implementation',
+          category,
+          issue,
+          reportingLabels[reportingStatus] ?? 'Reporting status unset',
+        ]
+          .filter(Boolean)
+          .join(' · '),
       }
     },
   },
