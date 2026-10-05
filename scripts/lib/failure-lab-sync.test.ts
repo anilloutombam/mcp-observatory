@@ -8,22 +8,24 @@ type Document = Record<string, unknown> & { _id: string; _type: string }
 class MemorySanityClient {
   documents = new Map<string, Document>()
   failCreateAt: number | undefined
+  fetchCount = 0
+  transactionCommitCount = 0
   private createCount = 0
   private nextId = 1
 
-  async fetch(_query: string, params: Record<string, string>) {
-    return (
-      [...this.documents.values()].find((document) => {
-        if (document._type !== params.type) return false
-        if (params.slug) {
-          return (
-            (document.slug as { current?: string } | undefined)?.current ===
-            params.slug
-          )
-        }
-        return document.sourceKey === params.sourceKey
-      }) ?? null
-    )
+  async fetch(_query: string, params: Record<string, string[]>) {
+    this.fetchCount += 1
+    return [...this.documents.values()].filter((document) => {
+      const slug = (document.slug as { current?: string } | undefined)?.current
+      if (document._type === 'implementation')
+        return !!slug && params.implementationSlugs.includes(slug)
+      if (document._type === 'scenario')
+        return !!slug && params.scenarioSlugs.includes(slug)
+      return (
+        typeof document.sourceKey === 'string' &&
+        params.sourceKeys.includes(document.sourceKey)
+      )
+    })
   }
 
   async create(values: Record<string, unknown>) {
@@ -34,7 +36,10 @@ class MemorySanityClient {
     }
     const document = {
       ...values,
-      _id: `document-${this.nextId++}`,
+      _id:
+        typeof values._id === 'string'
+          ? values._id
+          : `document-${this.nextId++}`,
     } as Document
     this.documents.set(document._id, document)
     return document
@@ -77,6 +82,38 @@ class MemorySanityClient {
       },
     }
     return builder
+  }
+
+  transaction() {
+    const operations: Array<() => Promise<unknown>> = []
+    const transaction = {
+      create: (document: Record<string, unknown>) => {
+        operations.push(() => this.create(document))
+        return transaction
+      },
+      patch: (
+        id: string,
+        values: {
+          set?: Record<string, unknown>
+          setIfMissing?: Record<string, unknown>
+          unset?: string[]
+        },
+      ) => {
+        operations.push(async () => {
+          const patch = this.patch(id)
+          if (values.set) patch.set(values.set)
+          if (values.setIfMissing) patch.setIfMissing(values.setIfMissing)
+          if (values.unset) patch.unset(values.unset)
+          return patch.commit()
+        })
+        return transaction
+      },
+      commit: async () => {
+        this.transactionCommitCount += 1
+        for (const operation of operations) await operation()
+      },
+    }
+    return transaction
   }
 
   ofType(type: string) {
@@ -180,11 +217,35 @@ describe('Failure Lab sync', () => {
     expect(memory.ofType('evidence')).toHaveLength(2)
     expect(memory.ofType('finding')).toHaveLength(1)
     expect(memory.ofType('dataSync')).toHaveLength(1)
-    expect(result.counters.testRun.updated).toBe(2)
+    expect(result.counters.testRun.updated).toBe(1)
+    expect(result.counters.testRun.preserved).toBe(1)
+    expect(result.counters.evidence.updated).toBe(1)
+    expect(result.counters.evidence.preserved).toBe(1)
     expect(result.counters.finding.preserved).toBe(1)
     expect(memory.ofType('testRun')).toContainEqual(
       expect.objectContaining({ observations: ['Updated observation.'] }),
     )
+  })
+
+  it('bulk-loads existing records and skips unchanged run and evidence writes', async () => {
+    const memory = new MemorySanityClient()
+    const data = sourceData()
+    await syncFailureLabData(client(memory), data, {
+      revision: 'abc123',
+      completedAt: '2026-09-28T12:00:00Z',
+    })
+    const commitsAfterFirstSync = memory.transactionCommitCount
+
+    const result = await syncFailureLabData(client(memory), data, {
+      revision: 'abc123',
+      completedAt: '2026-09-28T12:00:00Z',
+    })
+
+    expect(memory.fetchCount).toBe(2)
+    expect(memory.transactionCommitCount).toBe(commitsAfterFirstSync + 1)
+    expect(result.counters.testRun).toMatchObject({ updated: 0, preserved: 2 })
+    expect(result.counters.evidence).toMatchObject({ updated: 0, preserved: 2 })
+    expect(result.counters.finding.preserved).toBe(1)
   })
 
   it('removes a previously recorded duration when the source changes to null', async () => {
