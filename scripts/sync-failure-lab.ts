@@ -79,6 +79,7 @@ async function main() {
   const result = await syncFailureLabData(client, data, {
     revision,
     sourceUrl: loaded.sourceUrl,
+    onProgress: (message) => console.log(message),
   })
 
   console.log(JSON.stringify({ mode: 'write', source, ...result }, null, 2))

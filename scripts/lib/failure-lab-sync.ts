@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto'
 import type { SanityClient } from '@sanity/client'
 import {
   runSourceKey,
@@ -8,12 +9,30 @@ import { z } from 'zod'
 
 type ImportedType =
   'implementation' | 'scenario' | 'testRun' | 'evidence' | 'finding'
-
 export type SyncCounters = Record<
   ImportedType,
   { created: number; updated: number; preserved: number }
 >
+type ExistingDocument = Record<string, unknown> & {
+  _id: string
+  _type: string
+  sourceKey?: string
+  slug?: { current?: string }
+}
+type Mutation =
+  | {
+      action: 'create'
+      document: Record<string, unknown> & { _id: string; _type: string }
+    }
+  | {
+      action: 'patch'
+      id: string
+      set?: Record<string, unknown>
+      setIfMissing?: Record<string, unknown>
+      unset?: string[]
+    }
 
+const BATCH_SIZE = 75
 const syncOptionsSchema = z
   .object({
     revision: z
@@ -54,65 +73,134 @@ function emptyCounters(): SyncCounters {
   }
 }
 
-async function findBySlug(
-  client: SanityClient,
-  type: 'implementation' | 'scenario',
-  slug: string,
+function hasSameValues(
+  document: ExistingDocument,
+  values: Record<string, unknown>,
 ) {
-  return client.fetch<{ _id: string } | null>(
-    `*[_type == $type && slug.current == $slug][0]{_id}`,
-    { type, slug },
+  return Object.entries(values).every(
+    ([key, value]) => JSON.stringify(document[key]) === JSON.stringify(value),
   )
 }
 
-async function findBySourceKey(
+async function commitMutations(
   client: SanityClient,
-  type: 'testRun' | 'evidence' | 'finding' | 'dataSync',
-  sourceKey: string,
+  mutations: Mutation[],
+  progress?: (message: string) => void,
 ) {
-  return client.fetch<{ _id: string } | null>(
-    `*[_type == $type && sourceKey == $sourceKey][0]{_id}`,
-    { type, sourceKey },
-  )
+  for (let offset = 0; offset < mutations.length; offset += BATCH_SIZE) {
+    const batch = mutations.slice(offset, offset + BATCH_SIZE)
+    const transaction = client.transaction()
+    for (const mutation of batch) {
+      if (mutation.action === 'create') transaction.create(mutation.document)
+      else
+        transaction.patch(mutation.id, {
+          ...(mutation.set ? { set: mutation.set } : {}),
+          ...(mutation.setIfMissing
+            ? { setIfMissing: mutation.setIfMissing }
+            : {}),
+          ...(mutation.unset ? { unset: mutation.unset } : {}),
+        })
+    }
+    await transaction.commit()
+    progress?.(
+      `Committed ${Math.min(offset + batch.length, mutations.length)}/${mutations.length} Sanity mutations.`,
+    )
+  }
 }
 
 export async function syncFailureLabData(
   client: SanityClient,
   input: SourceData,
-  options: { revision: string; sourceUrl?: string; completedAt?: string },
+  options: {
+    revision: string
+    sourceUrl?: string
+    completedAt?: string
+    onProgress?: (message: string) => void
+  },
 ) {
   const data = validateSource(input)
-  const syncOptions = syncOptionsSchema.parse(options)
+  const { onProgress, ...rawSyncOptions } = options
+  const syncOptions = syncOptionsSchema.parse(rawSyncOptions)
   const counts = sourceCounts(data)
   const counters = emptyCounters()
+  const implementationSlugs = new Set<string>()
+  const scenarioSlugs = new Set<string>()
+  const sourceKeys = new Set<string>()
+
+  for (const report of data.reports) {
+    implementationSlugs.add(report.implementation.slug)
+    for (const outcome of report.outcomes) {
+      const scenarioSlug = outcome.scenario[1]
+      scenarioSlugs.add(scenarioSlug)
+      for (const [key] of outcome.runs) {
+        const runKey = runSourceKey(report.id, scenarioSlug, key)
+        sourceKeys.add(runKey)
+        sourceKeys.add(`${runKey}:evidence`)
+      }
+    }
+    for (const finding of report.findings ?? [])
+      sourceKeys.add(`mcp-failure-lab:${report.id}:finding:${finding.id}`)
+  }
+  const syncSourceKey = `mcp-failure-lab:${syncOptions.revision}`
+  sourceKeys.add(syncSourceKey)
+
+  onProgress?.(`Loading existing Sanity records for ${counts.runs} runs.`)
+  const existingDocuments = await client.fetch<ExistingDocument[]>(
+    `*[
+      (_type == "implementation" && slug.current in $implementationSlugs) ||
+      (_type == "scenario" && slug.current in $scenarioSlugs) ||
+      (_type in ["testRun", "evidence", "finding", "dataSync"] && sourceKey in $sourceKeys)
+    ]`,
+    {
+      implementationSlugs: [...implementationSlugs],
+      scenarioSlugs: [...scenarioSlugs],
+      sourceKeys: [...sourceKeys],
+    },
+  )
+  const bySlug = new Map(
+    existingDocuments
+      .filter((document) => document.slug?.current)
+      .map((document) => [document.slug!.current!, document]),
+  )
+  const bySourceKey = new Map(
+    existingDocuments
+      .filter((document) => document.sourceKey)
+      .map((document) => [document.sourceKey!, document]),
+  )
   const implementationIds = new Map<string, string>()
   const scenarioIds = new Map<string, string>()
+  const mutations: Mutation[] = []
+  let processedRuns = 0
 
   for (const report of data.reports) {
     let implementationId = implementationIds.get(report.implementation.slug)
     if (!implementationId) {
-      const existing = await findBySlug(
-        client,
-        'implementation',
-        report.implementation.slug,
-      )
+      const existing = bySlug.get(report.implementation.slug)
       if (existing) {
         implementationId = existing._id
-        await client
-          .patch(existing._id)
-          .setIfMissing({ repositoryUrl: report.implementation.repositoryUrl })
-          .commit()
+        if (existing.repositoryUrl === undefined)
+          mutations.push({
+            action: 'patch',
+            id: existing._id,
+            setIfMissing: {
+              repositoryUrl: report.implementation.repositoryUrl,
+            },
+          })
         counters.implementation.preserved += 1
       } else {
-        const created = await client.create({
-          _type: 'implementation',
-          name: report.implementation.name,
-          slug: { _type: 'slug', current: report.implementation.slug },
-          kind: report.implementation.kind,
-          repositoryUrl: report.implementation.repositoryUrl,
-          description: 'Compatibility data imported from MCP Failure Lab.',
+        implementationId = randomUUID()
+        mutations.push({
+          action: 'create',
+          document: {
+            _id: implementationId,
+            _type: 'implementation',
+            name: report.implementation.name,
+            slug: { _type: 'slug', current: report.implementation.slug },
+            kind: report.implementation.kind,
+            repositoryUrl: report.implementation.repositoryUrl,
+            description: 'Compatibility data imported from MCP Failure Lab.',
+          },
         })
-        implementationId = created._id
         counters.implementation.created += 1
       }
       implementationIds.set(report.implementation.slug, implementationId)
@@ -123,19 +211,23 @@ export async function syncFailureLabData(
       const [scenarioName, scenarioSlug, scenarioCategory] = outcome.scenario
       let scenarioId = scenarioIds.get(scenarioSlug)
       if (!scenarioId) {
-        const existing = await findBySlug(client, 'scenario', scenarioSlug)
+        const existing = bySlug.get(scenarioSlug)
         if (existing) {
           scenarioId = existing._id
           counters.scenario.preserved += 1
         } else {
-          const created = await client.create({
-            _type: 'scenario',
-            name: scenarioName,
-            slug: { _type: 'slug', current: scenarioSlug },
-            category: scenarioCategory,
-            description: 'Scenario imported from MCP Failure Lab.',
+          scenarioId = randomUUID()
+          mutations.push({
+            action: 'create',
+            document: {
+              _id: scenarioId,
+              _type: 'scenario',
+              name: scenarioName,
+              slug: { _type: 'slug', current: scenarioSlug },
+              category: scenarioCategory,
+              description: 'Scenario imported from MCP Failure Lab.',
+            },
           })
-          scenarioId = created._id
           counters.scenario.created += 1
         }
         scenarioIds.set(scenarioSlug, scenarioId)
@@ -160,21 +252,36 @@ export async function syncFailureLabData(
           observations: [observation],
           ...(durationMs == null ? {} : { durationMs }),
         }
-        const existingRun = await findBySourceKey(client, 'testRun', sourceKey)
+        const existingRun = bySourceKey.get(sourceKey)
         let testRunId: string
         if (existingRun) {
           testRunId = existingRun._id
-          const patch = client.patch(testRunId).set(testRunValues)
-          if (durationMs == null) patch.unset(['durationMs'])
-          await patch.commit()
-          counters.testRun.updated += 1
+          const durationMatches =
+            durationMs == null
+              ? existingRun.durationMs === undefined
+              : existingRun.durationMs === durationMs
+          if (hasSameValues(existingRun, testRunValues) && durationMatches)
+            counters.testRun.preserved += 1
+          else {
+            mutations.push({
+              action: 'patch',
+              id: testRunId,
+              set: testRunValues,
+              ...(durationMs == null ? { unset: ['durationMs'] } : {}),
+            })
+            counters.testRun.updated += 1
+          }
         } else {
-          const created = await client.create({
-            _type: 'testRun',
-            sourceKey,
-            ...testRunValues,
+          testRunId = randomUUID()
+          mutations.push({
+            action: 'create',
+            document: {
+              _id: testRunId,
+              _type: 'testRun',
+              sourceKey,
+              ...testRunValues,
+            },
           })
-          testRunId = created._id
           counters.testRun.created += 1
         }
 
@@ -186,26 +293,37 @@ export async function syncFailureLabData(
           raw: observation,
           source: report.sourceUrl,
         }
-        const existingEvidence = await findBySourceKey(
-          client,
-          'evidence',
-          evidenceKey,
-        )
+        const existingEvidence = bySourceKey.get(evidenceKey)
         let evidenceId: string
         if (existingEvidence) {
           evidenceId = existingEvidence._id
-          await client.patch(evidenceId).set(evidenceValues).commit()
-          counters.evidence.updated += 1
+          if (hasSameValues(existingEvidence, evidenceValues))
+            counters.evidence.preserved += 1
+          else {
+            mutations.push({
+              action: 'patch',
+              id: evidenceId,
+              set: evidenceValues,
+            })
+            counters.evidence.updated += 1
+          }
         } else {
-          const created = await client.create({
-            _type: 'evidence',
-            sourceKey: evidenceKey,
-            ...evidenceValues,
+          evidenceId = randomUUID()
+          mutations.push({
+            action: 'create',
+            document: {
+              _id: evidenceId,
+              _type: 'evidence',
+              sourceKey: evidenceKey,
+              ...evidenceValues,
+            },
           })
-          evidenceId = created._id
           counters.evidence.created += 1
         }
         runIds.set(`${scenarioSlug}:${key}`, { testRunId, evidenceId })
+        processedRuns += 1
+        if (processedRuns % 100 === 0 || processedRuns === counts.runs)
+          onProgress?.(`Prepared ${processedRuns}/${counts.runs} runs.`)
       }
     }
 
@@ -213,47 +331,47 @@ export async function syncFailureLabData(
       const linkedRun = runIds.get(finding.run)
       if (!linkedRun)
         throw new Error(`Missing imported run ${report.id}:${finding.run}`)
-
       const sourceKey = `mcp-failure-lab:${report.id}:finding:${finding.id}`
-      const existing = await findBySourceKey(client, 'finding', sourceKey)
-      if (existing) {
+      if (bySourceKey.has(sourceKey)) {
         counters.finding.preserved += 1
         continue
       }
-
-      await client.create({
-        _type: 'finding',
-        sourceKey,
-        testRun: { _type: 'reference', _ref: linkedRun.testRunId },
-        statement: finding.statement,
-        category: finding.category,
-        confidence: 1,
-        status: 'needs-review',
-        supportingEvidence: [
-          {
-            _key: 'primary-evidence',
-            _type: 'reference',
-            _ref: linkedRun.evidenceId,
-          },
-        ],
-        proposedBy: 'importer',
-        affectedVersions: [report.implementation.version],
-        reportingStatus: finding.reportingStatus,
-        upstreamRepository: finding.repository,
-        upstreamIssueUrl: finding.issueUrl,
-        upstreamIssueNumber: finding.issueNumber,
-        ...(finding.commentUrl
-          ? { upstreamCommentUrl: finding.commentUrl }
-          : {}),
-        reportedAt: finding.reportedAt,
-        upstreamIssueState: 'open',
+      mutations.push({
+        action: 'create',
+        document: {
+          _id: randomUUID(),
+          _type: 'finding',
+          sourceKey,
+          testRun: { _type: 'reference', _ref: linkedRun.testRunId },
+          statement: finding.statement,
+          category: finding.category,
+          confidence: 1,
+          status: 'needs-review',
+          supportingEvidence: [
+            {
+              _key: 'primary-evidence',
+              _type: 'reference',
+              _ref: linkedRun.evidenceId,
+            },
+          ],
+          proposedBy: 'importer',
+          affectedVersions: [report.implementation.version],
+          reportingStatus: finding.reportingStatus,
+          upstreamRepository: finding.repository,
+          upstreamIssueUrl: finding.issueUrl,
+          upstreamIssueNumber: finding.issueNumber,
+          ...(finding.commentUrl
+            ? { upstreamCommentUrl: finding.commentUrl }
+            : {}),
+          reportedAt: finding.reportedAt,
+          upstreamIssueState: 'open',
+        },
       })
       counters.finding.created += 1
     }
   }
 
   const completedAt = syncOptions.completedAt ?? new Date().toISOString()
-  const syncSourceKey = `mcp-failure-lab:${syncOptions.revision}`
   const syncValues = {
     source: 'mcp-failure-lab',
     sourceRevision: syncOptions.revision,
@@ -264,15 +382,23 @@ export async function syncFailureLabData(
     runCount: counts.runs,
     findingCount: counts.findings,
   }
-  const existingSync = await findBySourceKey(client, 'dataSync', syncSourceKey)
+  const existingSync = bySourceKey.get(syncSourceKey)
   if (existingSync)
-    await client.patch(existingSync._id).set(syncValues).commit()
+    mutations.push({ action: 'patch', id: existingSync._id, set: syncValues })
   else
-    await client.create({
-      _type: 'dataSync',
-      sourceKey: syncSourceKey,
-      ...syncValues,
+    mutations.push({
+      action: 'create',
+      document: {
+        _id: randomUUID(),
+        _type: 'dataSync',
+        sourceKey: syncSourceKey,
+        ...syncValues,
+      },
     })
 
+  onProgress?.(
+    `Committing ${mutations.length} mutations in batches of ${BATCH_SIZE}.`,
+  )
+  await commitMutations(client, mutations, onProgress)
   return { revision: syncOptions.revision, completedAt, ...counts, counters }
 }
