@@ -15,6 +15,7 @@
     "backfill:implementation-repositories": "tsx --env-file=.env.local scripts/backfill-implementation-repositories.ts",
     "import:lifecycle-compatibility": "tsx --env-file=.env.local scripts/import-lifecycle-compatibility.ts",
     "import:upstream-findings": "node --env-file=.env.local --import tsx scripts/sync-failure-lab.ts --write",
+    "migrate:implementation-aliases": "node --env-file=.env.local --import tsx scripts/migrate-implementation-aliases.ts",
     "sync:failure-lab": "node --env-file=.env.local --import tsx scripts/sync-failure-lab.ts"
   },
   "dependencies": {
