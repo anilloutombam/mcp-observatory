@@ -248,6 +248,24 @@ describe('Failure Lab sync', () => {
     expect(result.counters.finding.preserved).toBe(1)
   })
 
+  it('reuses the canonical implementation for a legacy SDK slug', async () => {
+    const memory = new MemorySanityClient()
+    const canonical = sourceData()
+    canonical.reports[0].implementation.slug = 'typescript-sdk'
+    canonical.reports[0].implementation.name = 'TypeScript MCP SDK'
+    await syncFailureLabData(client(memory), canonical, { revision: 'abc123' })
+
+    const legacy = sourceData()
+    legacy.reports[0].implementation.slug = 'typescript-mcp-sdk'
+    legacy.reports[0].implementation.name = 'TypeScript MCP SDK'
+    await syncFailureLabData(client(memory), legacy, { revision: 'def456' })
+
+    expect(memory.ofType('implementation')).toHaveLength(1)
+    expect(memory.ofType('implementation')[0]).toMatchObject({
+      slug: { current: 'typescript-sdk' },
+    })
+  })
+
   it('removes a previously recorded duration when the source changes to null', async () => {
     const memory = new MemorySanityClient()
     const data = sourceData()

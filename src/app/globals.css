@@ -529,6 +529,10 @@ summary:focus-visible,
 .implementation-logo.logo-python {
   background: #fff7da;
 }
+.implementation-logo.logo-java {
+  color: #e76f00;
+  background: #fff0e3;
+}
 .implementation-logo.logo-go {
   color: #00a7c7;
   background: #e4f8fb;

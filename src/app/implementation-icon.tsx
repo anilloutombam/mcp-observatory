@@ -1,3 +1,16 @@
+export type ImplementationIconKind =
+  | 'github'
+  | 'typescript'
+  | 'python'
+  | 'java'
+  | 'rust'
+  | 'csharp'
+  | 'go'
+  | 'mcp'
+  | 'proxy'
+  | 'server'
+  | 'fallback'
+
 type ImplementationIconProps = {
   name: string
   slug?: string
@@ -9,27 +22,33 @@ const githubPath =
 const mcpPath =
   'M13.85 0a4.16 4.16 0 0 0-2.95 1.217L1.456 10.66a.835.835 0 0 0 0 1.18.835.835 0 0 0 1.18 0l9.442-9.442a2.49 2.49 0 0 1 3.541 0 2.49 2.49 0 0 1 0 3.541L8.59 12.97l-.1.1a.835.835 0 0 0 0 1.18.835.835 0 0 0 1.18 0l.1-.098 7.03-7.034a2.49 2.49 0 0 1 3.542 0l.049.05a2.49 2.49 0 0 1 0 3.54l-8.54 8.54a1.96 1.96 0 0 0 0 2.755l1.753 1.753a.835.835 0 0 0 1.18 0 .835.835 0 0 0 0-1.18l-1.753-1.753a.266.266 0 0 1 0-.394l8.54-8.54a4.185 4.185 0 0 0 0-5.9l-.05-.05a4.16 4.16 0 0 0-2.95-1.218c-.2 0-.401.02-.6.048a4.17 4.17 0 0 0-1.17-3.552A4.16 4.16 0 0 0 13.85 0m0 3.333a.84.84 0 0 0-.59.245L6.275 10.56a4.186 4.186 0 0 0 0 5.902 4.186 4.186 0 0 0 5.902 0L19.16 9.48a.835.835 0 0 0 0-1.18.835.835 0 0 0-1.18 0l-6.985 6.984a2.49 2.49 0 0 1-3.54 0 2.49 2.49 0 0 1 0-3.54l6.983-6.985a.835.835 0 0 0 0-1.18.84.84 0 0 0-.59-.245'
 
-export function ImplementationIcon({ name, slug }: ImplementationIconProps) {
+export function implementationIconKind(name: string, slug?: string) {
   const key = slug ?? name.toLowerCase().replaceAll(' ', '-')
-  const kind = key.includes('github')
+  return key.includes('github')
     ? 'github'
     : key.includes('typescript')
       ? 'typescript'
       : key.includes('python')
         ? 'python'
-        : key.includes('rust')
-          ? 'rust'
-          : key.includes('c-mcp') || key.includes('csharp')
-            ? 'csharp'
-            : key.includes('go-mcp')
-              ? 'go'
-              : key.includes('inspector') || key.includes('everything-server')
-                ? 'mcp'
-                : key.includes('proxy') || key.includes('supergateway')
-                  ? 'proxy'
-                  : key.includes('server') || key.includes('everything')
-                    ? 'server'
-                    : 'fallback'
+        : key.includes('java')
+          ? 'java'
+          : key.includes('rust')
+            ? 'rust'
+            : key.includes('c-mcp') || key.includes('csharp')
+              ? 'csharp'
+              : key.includes('go-mcp') || key.includes('go-sdk')
+                ? 'go'
+                : key.includes('inspector') || key.includes('everything-server')
+                  ? 'mcp'
+                  : key.includes('proxy') || key.includes('supergateway')
+                    ? 'proxy'
+                    : key.includes('server') || key.includes('everything')
+                      ? 'server'
+                      : 'fallback'
+}
+
+export function ImplementationIcon({ name, slug }: ImplementationIconProps) {
+  const kind: ImplementationIconKind = implementationIconKind(name, slug)
 
   return (
     <span className={`implementation-logo logo-${kind}`} aria-hidden="true">
@@ -65,6 +84,34 @@ export function ImplementationIcon({ name, slug }: ImplementationIconProps) {
               fill="#ffd343"
             />
             <circle cx="19" cy="25" r="1.2" fill="white" />
+          </>
+        )}
+        {kind === 'java' && (
+          <>
+            <path
+              d="M10 22c-2.5 1-1 2.7 6 2.7s8.5-2.1 6.2-3.1c-1.4-.6-3.5-.2-3.5-.2"
+              stroke="currentColor"
+              strokeWidth="1.8"
+              strokeLinecap="round"
+            />
+            <path
+              d="M9 18.5c-2.8 1.3.2 2.5 6.5 2.5 5.2 0 8.2-1.2 6.8-2.4"
+              stroke="currentColor"
+              strokeWidth="1.8"
+              strokeLinecap="round"
+            />
+            <path
+              d="M11 10h10l-1 7c-.3 1.5-2.2 2.5-4 2.5s-3.7-1-4-2.5l-1-7Z"
+              stroke="currentColor"
+              strokeWidth="1.8"
+              strokeLinejoin="round"
+            />
+            <path
+              d="M21 12h1.5a2 2 0 0 1 0 4H21M14 8c-2-2 3-2.5 1-5M18 8c-2-2 3-2.5 1-5"
+              stroke="currentColor"
+              strokeWidth="1.8"
+              strokeLinecap="round"
+            />
           </>
         )}
         {kind === 'go' && (

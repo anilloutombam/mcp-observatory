@@ -5,6 +5,7 @@ import {
   type SourceData,
   validateSource,
 } from './upstream-import'
+import { canonicalImplementationSlug } from './implementation-aliases'
 import { z } from 'zod'
 
 type ImportedType =
@@ -128,7 +129,9 @@ export async function syncFailureLabData(
   const sourceKeys = new Set<string>()
 
   for (const report of data.reports) {
-    implementationSlugs.add(report.implementation.slug)
+    implementationSlugs.add(
+      canonicalImplementationSlug(report.implementation.slug),
+    )
     for (const outcome of report.outcomes) {
       const scenarioSlug = outcome.scenario[1]
       scenarioSlugs.add(scenarioSlug)
@@ -173,9 +176,12 @@ export async function syncFailureLabData(
   let processedRuns = 0
 
   for (const report of data.reports) {
-    let implementationId = implementationIds.get(report.implementation.slug)
+    const implementationSlug = canonicalImplementationSlug(
+      report.implementation.slug,
+    )
+    let implementationId = implementationIds.get(implementationSlug)
     if (!implementationId) {
-      const existing = bySlug.get(report.implementation.slug)
+      const existing = bySlug.get(implementationSlug)
       if (existing) {
         implementationId = existing._id
         if (existing.repositoryUrl === undefined)
@@ -195,7 +201,7 @@ export async function syncFailureLabData(
             _id: implementationId,
             _type: 'implementation',
             name: report.implementation.name,
-            slug: { _type: 'slug', current: report.implementation.slug },
+            slug: { _type: 'slug', current: implementationSlug },
             kind: report.implementation.kind,
             repositoryUrl: report.implementation.repositoryUrl,
             description: 'Compatibility data imported from MCP Failure Lab.',
@@ -203,7 +209,7 @@ export async function syncFailureLabData(
         })
         counters.implementation.created += 1
       }
-      implementationIds.set(report.implementation.slug, implementationId)
+      implementationIds.set(implementationSlug, implementationId)
     }
 
     const runIds = new Map<string, { testRunId: string; evidenceId: string }>()
