@@ -124,7 +124,7 @@ The embedded Sanity Studio is available at `/studio` for authorized editors.
 
 ### Requirements
 
-- Node.js 22
+- Node.js 22.23.4 (Node 22)
 - npm
 - A Sanity project and dataset
 
